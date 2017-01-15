@@ -1,0 +1,68 @@
+{
+    "rules": {
+        ".write": false,
+        ".read": false,
+        "chat": {
+            ".read": true,
+            "$comment": {
+                ".read": true,
+                ".write": "((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+            }
+        },
+        "songToPlay": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "queues": {
+            ".read": true,
+            "$uid": {
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+            }
+        },
+        "table": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "waitlist": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "playdex": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "playlimit": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "users": {
+            ".read": true,
+            "$uid": {
+                "status": {
+                    ".write": "auth.uid == $uid"
+                },
+                "mod": {
+                    ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
+                },
+                "supermod": {
+                    ".write": "false"
+                },
+                "username": {
+                    "$username": {
+                        ".write": "root.child('usernames/' + $username).hasChild($uid) && !data.exists()"
+                    }
+                }
+            }
+        },
+        "usernames": {
+            ".read": true,
+            "$username": {
+                ".validate": "!data.exists()",
+                "$uid": {
+                    ".write": "auth.uid == $uid && !data.exists() && !root.child('users/' + $uid + '/username').exists()"
+                }
+            }
+        }
+    }
+}
