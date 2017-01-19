@@ -257,7 +257,6 @@ var addCheck = function(id) {
     }
     for (var i = 0; i < table.length; i++) {
         if (table[i].id == id) {
-            table.splice(i, 1);
             return 2;
         }
     }
