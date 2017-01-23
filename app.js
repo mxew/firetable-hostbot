@@ -72,6 +72,7 @@ firebase.auth().onAuthStateChanged(function(user) {
                             var data = snapshot.val();
                             var nownow = Date.now();
                             song = data;
+                            theDJ = table[playDex];
                             var timeSince = nownow - data.started;
                             var secSince = Math.floor(timeSince / 1000);
                             var timeLeft = data.duration - secSince;
@@ -397,7 +398,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 if (users[chatData.id].mod || users[chatData.id].supermod) {
                     var prsnToRemove = uidLookup(args);
                     if (prsnToRemove) {
-                        var removed = removeMe(thanksid);
+                        var removed = removeMe(prsnToRemove);
                         if (!removed) talk("Can not remove " + args + " because they are not on the table or in the waitlist. Thanks.");
                     } else {
                         talk("who is that");
