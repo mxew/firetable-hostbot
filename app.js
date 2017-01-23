@@ -8,6 +8,7 @@ var config = require('./config');
 youTube.setKey(config.youtube.key);
 var users = {};
 var botid = null;
+var started = false;
 var queue = [];
 theDJ = null;
 var table = [];
@@ -35,8 +36,79 @@ firebase.auth().onAuthStateChanged(function(user) {
         var ref0 = firebase.database().ref("users/" + user.uid + "/status");
         ref0.set(true);
         ref0.onDisconnect().set(false);
+        if (!started) {
+            var tpeek = firebase.database().ref("table");
+            tpeek.once("value").then(function(snapshot) {
+                var data = snapshot.val();
+                if (data) {
+                    for (var key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            table.push(data[key]);
+                        }
+                    }
+                } else {
+                    console.log("no DJS");
+                }
+                var wpeek = firebase.database().ref("waitlist");
+                wpeek.once("value").then(function(snapshot) {
+                    var data = snapshot.val();
+                    if (data) {
+                        for (var key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                queue.push(data[key]);
+                            }
+                        }
+                    } else {
+                        console.log("no waiters");
+                    }
+                    var ppeek = firebase.database().ref("playdex");
+                    wpeek.once("value").then(function(snapshot) {
+                        var data = snapshot.val();
+                        if (data) {
+                            playDex = data;
+                        }
+                        var twopeek = firebase.database().ref("songToPlay");
+                        twopeek.once("value").then(function(snapshot) {
+                            var data = snapshot.val();
+                            var nownow = Date.now();
+                            song = data;
+                            var timeSince = nownow - data.started;
+                            var secSince = Math.floor(timeSince / 1000);
+                            var timeLeft = data.duration - secSince;
+                            if (timeLeft <= 0) {
+                                nextSong();
+                            } else {
+                                songTimeout = setTimeout(function() {
+                                    songTimeout = null;
+                                    nextSong(); //NEEEEEEXT
+                                }, timeLeft * 1000);
+                            }
+                            updateThings();
+                            started = true;
+                        });
+
+                    });
+                });
+            });
+        }
     }
 });
+
+var uidLookup = function(name) {
+    var match = false;
+    var usrs = users;
+    for (var key in usrs) {
+        if (usrs.hasOwnProperty(key)) {
+            if (users[key].username) {
+                if (Object.keys(users[key].username)[0] == name) {
+                    match = key;
+                }
+            }
+        }
+    }
+    if (!match && users[name]) match = name;
+    return match;
+}
 
 var talk = function(txt) {
     var chat = firebase.database().ref("chat");
@@ -100,9 +172,9 @@ var nextSong = function() {
 };
 
 var startSong = function() {
-  console.log(table.length);
+    console.log(table.length);
     if (!table.length) {
-      console.log("no length");
+        console.log("no length");
         var s2p = firebase.database().ref("songToPlay");
         var now = Date.now();
         var songInfo = {
@@ -202,10 +274,10 @@ var startSong = function() {
             });
 
         } else {
-          console.log("no songs in queue... remove this DJ");
-          removePerson(theDJ.id);
-          nextSong();
-          console.log("ok?")
+            console.log("no songs in queue... remove this DJ");
+            removePerson(theDJ.id);
+            nextSong();
+            console.log("ok?")
         }
     });
 };
@@ -278,7 +350,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
     if (!ignoreChats) {
         console.log(namebo + ": " + chatData.txt);
         var matches = chatData.txt.match(/^(?:[!])(\w+)\s*(.*)/i);
-        if (matches && botid !== chatData.id) {
+        if (matches && botid !== chatData.id && started) {
             var command = matches[1].toLowerCase();
             var args = matches[2];
             if (command == "addme") {
@@ -321,6 +393,16 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
                     nextSong();
                 }
+            } else if (command == "remove") {
+                if (users[chatData.id].mod || users[chatData.id].supermod) {
+                    var prsnToRemove = uidLookup(args);
+                    if (prsnToRemove) {
+                        var removed = removeMe(thanksid);
+                        if (!removed) talk("Can not remove " + args + " because they are not on the table or in the waitlist. Thanks.");
+                    } else {
+                        talk("who is that");
+                    }
+                }
             } else if (command == "wait") {
                 talk("wait");
             }
@@ -359,14 +441,14 @@ setInterval(function() {
             }
         }
     });
-    for (var i=0; i<table.length; i++){
-      if (!users[table[i].id].status){
-        removeMe(table[i].id);
-      }
+    for (var i = 0; i < table.length; i++) {
+        if (!users[table[i].id].status) {
+            removeMe(table[i].id);
+        }
     }
-    for (var i=0; i<queue.length; i++){
-      if (!users[queue[i].id].status){
-        removeMe(queue[i].id);
-      }
+    for (var i = 0; i < queue.length; i++) {
+        if (!users[queue[i].id].status) {
+            removeMe(queue[i].id);
+        }
     }
 }, 5 * 60000);
