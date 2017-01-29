@@ -1,0 +1,24 @@
+{
+  "name": "firetable-hostbot",
+  "version": "0.0.1",
+  "description": "node.js 'chatbot' back end for firetable, a virtual music listening room powered by firebase.",
+  "main": "app.js",
+  "dependencies": {
+    "firebase": "^3.6.7",
+    "youtube-node": "^1.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mxew/firetable-hostbot.git"
+  },
+  "author": "Matt Thompson <matt@thompsn.com> (http://thompsn.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mxew/firetable-hostbot/issues"
+  },
+  "homepage": "https://github.com/mxew/firetable-hostbot#readme"
+}

@@ -3,7 +3,6 @@ var YouTube = require('youtube-node');
 
 var youTube = new YouTube();
 
-var version = "00.01";
 var config = require('./config');
 youTube.setKey(config.youtube.key);
 var users = {};
