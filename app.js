@@ -403,6 +403,18 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                         talk("who is that");
                     }
                 }
+            } else if (command == "become"){
+              if (args){
+                //SO YOU WANNA CHANGE YOUR NAME HUH?
+                var testName = uidLookup(args);
+                if (testName){
+                  talk("Someone has that name already.");
+                } else {
+                  var uref = firebase.database().ref("users/" + chatData.id + "/username/" + args);
+                  uref.set(true);
+                  talk("Ok! Welcome to being "+args+" now.");
+                }
+              }
             } else if (command == "wait") {
                 talk("wait");
             }

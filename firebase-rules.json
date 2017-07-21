@@ -20,6 +20,13 @@
                 ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
             }
         },
+        "playlists": {
+            ".read": true,
+            "$uid": {
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+            }
+        },
         "table": {
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
@@ -32,6 +39,7 @@
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+
         "playlimit": {
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
@@ -50,7 +58,7 @@
                 },
                 "username": {
                     "$username": {
-                        ".write": "root.child('usernames/' + $username).hasChild($uid) && !data.exists()"
+            						".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
                     }
                 }
             }
