@@ -100,7 +100,7 @@ var uidLookup = function(name) {
     for (var key in usrs) {
         if (usrs.hasOwnProperty(key)) {
             if (users[key].username) {
-                if (Object.keys(users[key].username)[0] == name) {
+                if (users[key].username == name) {
                     match = key;
                 }
             }
@@ -345,7 +345,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
     var chatData = childSnapshot.val();
     var namebo = chatData.id;
     if (users[chatData.id]) {
-        if (users[chatData.id].username) namebo = Object.keys(users[chatData.id].username)[0];
+        if (users[chatData.id].username) namebo = users[chatData.id].username;
     }
     if (!ignoreChats) {
         console.log(namebo + ": " + chatData.txt);
@@ -410,8 +410,8 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 if (testName){
                   talk("Someone has that name already.");
                 } else {
-                  var uref = firebase.database().ref("users/" + chatData.id + "/username/" + args);
-                  uref.set(true);
+                  var uref = firebase.database().ref("users/" + chatData.id + "/username");
+                  uref.set(args);
                   talk("Ok! Welcome to being "+args+" now.");
                 }
               }
