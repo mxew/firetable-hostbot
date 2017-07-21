@@ -57,18 +57,7 @@
                     ".write": "false"
                 },
                 "username": {
-                    "$username": {
-            						".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-                    }
-                }
-            }
-        },
-        "usernames": {
-            ".read": true,
-            "$username": {
-                ".validate": "!data.exists()",
-                "$uid": {
-                    ".write": "auth.uid == $uid && !data.exists() && !root.child('users/' + $uid + '/username').exists()"
+            				".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
                 }
             }
         }
