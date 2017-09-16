@@ -210,14 +210,6 @@ var startSong = function() {
                     removeThis.remove()
                         .then(function() {
                             console.log("song remove went great.");
-                            var qref = firebase.database().ref('queues/' + theDJ.id);
-                            var sname = song.artist + " - " + song.title;
-                            var songBack = {
-                                cid: song.cid,
-                                name: sname,
-                                type: song.type
-                            };
-                            qref.push(songBack);
                         })
                         .catch(function(error) {
                             console.log("Song Remove failed: " + error.message);
