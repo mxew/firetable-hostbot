@@ -221,7 +221,7 @@ var startSong = function() {
         } else {
           console.log(result);
           if (!result.items.length) {
-            var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + song.key);
+            var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + nextSongkey);
             removeThis.remove()
               .then(function() {
                 console.log("song remove went great.");
