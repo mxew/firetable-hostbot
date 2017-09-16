@@ -206,7 +206,7 @@ var startSong = function() {
         if (error) {
           console.log(error);
           //SONG DOES NOT EXIST ON YT
-          var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + song.key);
+          var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + nextSongkey);
           removeThis.remove()
             .then(function() {
               console.log("song remove went great.");
