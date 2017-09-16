@@ -206,6 +206,26 @@ var startSong = function() {
                 if (error) {
                     console.log(error);
                     //SONG DOES NOT EXIST ON YT
+                    var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + song.key);
+                    removeThis.remove()
+                        .then(function() {
+                            console.log("song remove went great.");
+                            var qref = firebase.database().ref('queues/' + theDJ.id);
+                            var sname = song.artist + " - " + song.title;
+                            var songBack = {
+                                cid: song.cid,
+                                name: sname,
+                                type: song.type
+                            };
+                            qref.push(songBack);
+                        })
+                        .catch(function(error) {
+                            console.log("Song Remove failed: " + error.message);
+                        });
+                        talk("@"+theDJ.name+" you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+                        setTimeout(function() {
+                          startSong(); //try again with SAME DJ
+                        }, 3000);
                 } else {
                     console.log(result);
                     var input = result.items[0].contentDetails.duration;
@@ -340,6 +360,19 @@ ref2.on('value', function(dataSnapshot) {
     var okdata = dataSnapshot.val();
     users = okdata;
 });
+var isAlphaNumeric = function(str) {
+  var code, i, len;
+
+  for (i = 0, len = str.length; i < len; i++) {
+    code = str.charCodeAt(i);
+    if (!(code > 47 && code < 58) && // numeric (0-9)
+        !(code > 64 && code < 91) && // upper alpha (A-Z)
+        !(code > 96 && code < 123)) { // lower alpha (a-z)
+      return false;
+    }
+  }
+  return true;
+};
 var ref = firebase.database().ref("chat");
 ref.on('child_added', function(childSnapshot, prevChildKey) {
     var chatData = childSnapshot.val();
@@ -409,6 +442,8 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 var testName = uidLookup(args);
                 if (testName){
                   talk("Someone has that name already.");
+                } else if (!isAlphaNumeric(args)){
+                  talk("That is an INVALID NAME!");
                 } else {
                   var uref = firebase.database().ref("users/" + chatData.id + "/username");
                   uref.set(args);
