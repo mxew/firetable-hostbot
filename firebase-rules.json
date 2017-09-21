@@ -6,7 +6,7 @@
             ".read": true,
             "$comment": {
                 ".read": true,
-                ".write": "((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))"
             }
         },
         "songToPlay": {
@@ -14,14 +14,14 @@
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
         "queues": {
-            ".read": true,
+            ".read": false,
             "$uid": {
                 ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
                 ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
             }
         },
         "playlists": {
-            ".read": true,
+            ".read": false,
             "$uid": {
                 ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
                 ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
@@ -55,6 +55,9 @@
                 },
                 "supermod": {
                     ".write": "false"
+                },
+                "selectedList": {
+                  	".write": "auth.uid == $uid"
                 },
                 "username": {
             				".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"

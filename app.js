@@ -402,6 +402,10 @@ var ref2 = firebase.database().ref("users");
 ref2.on('value', function(dataSnapshot) {
   var okdata = dataSnapshot.val();
   users = okdata;
+  if (!okdata[botid].status){
+    var statusref = firebase.database().ref("users/" + botid + "/status");
+    statusref.set(true);
+  }
 });
 var ref = firebase.database().ref("chat");
 ref.on('child_added', function(childSnapshot, prevChildKey) {
