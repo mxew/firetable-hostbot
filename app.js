@@ -2,9 +2,13 @@ var firebase = require('firebase');
 var YouTube = require('youtube-node');
 
 var youTube = new YouTube();
+var SC = require('node-soundcloud')
 
 var config = require('./config');
 youTube.setKey(config.youtube.key);
+SC.init({
+  id: config.soundcloud.key,
+});
 var users = {};
 var botid = null;
 var started = false;
@@ -200,7 +204,7 @@ var startSong = function() {
     if (users[theDJ.id].selectedList == "0") {
       queueRef = firebase.database().ref("queues/" + theDJ.id);
     } else {
-      queueRef = firebase.database().ref("playlists/" + theDJ.id + "/" + users[theDJ.id].selectedList +"/list");
+      queueRef = firebase.database().ref("playlists/" + theDJ.id + "/" + users[theDJ.id].selectedList + "/list");
     }
   } else {
     queueRef = firebase.database().ref("queues/" + theDJ.id);
@@ -210,26 +214,12 @@ var startSong = function() {
     var data = snapshot.val();
     if (data) {
       var nextSongkey = Object.keys(data)[0];
-      youTube.getById(data[nextSongkey].cid, function(error, result) {
-        if (error) {
-          console.log(error);
-          //SONG DOES NOT EXIST ON YT
-          var removeThis = queueRef.child(nextSongkey);
-          removeThis.remove()
-            .then(function() {
-              console.log("song remove went great.");
-            })
-            .catch(function(error) {
-              console.log("Song Remove failed: " + error.message);
-            });
-          talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
-          setTimeout(function() {
-            startSong(); //try again with SAME DJ
-          }, 3000);
-        } else {
-          console.log(result);
-          if (!result.items.length) {
-            var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + nextSongkey);
+      if (data[nextSongkey].type == 1) {
+        youTube.getById(data[nextSongkey].cid, function(error, result) {
+          if (error) {
+            console.log(error);
+            //SONG DOES NOT EXIST ON YT
+            var removeThis = queueRef.child(nextSongkey);
             removeThis.remove()
               .then(function() {
                 console.log("song remove went great.");
@@ -242,70 +232,154 @@ var startSong = function() {
               startSong(); //try again with SAME DJ
             }, 3000);
           } else {
-            var input = result.items[0].contentDetails.duration;
-            var s2p = firebase.database().ref("songToPlay");
-            var yargo = data[nextSongkey].name.split(" - ");
-            var sartist = yargo[0];
-            var stitle = yargo[1];
+            console.log(result);
+            if (!result.items.length) {
+              var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + nextSongkey);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              setTimeout(function() {
+                startSong(); //try again with SAME DJ
+              }, 3000);
+            } else {
+              var input = result.items[0].contentDetails.duration;
+              var s2p = firebase.database().ref("songToPlay");
+              var yargo = data[nextSongkey].name.split(" - ");
+              var sartist = yargo[0];
+              var stitle = yargo[1];
 
-            var reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
-            var hours = 0,
-              minutes = 0,
-              seconds = 0,
-              totalseconds;
+              var reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
+              var hours = 0,
+                minutes = 0,
+                seconds = 0,
+                totalseconds;
 
-            if (reptms.test(input)) {
-              var matches = reptms.exec(input);
-              if (matches[1]) hours = Number(matches[1]);
-              if (matches[2]) minutes = Number(matches[2]);
-              if (matches[3]) seconds = Number(matches[3]);
-              totalseconds = hours * 3600 + minutes * 60 + seconds;
-            }
+              if (reptms.test(input)) {
+                var matches = reptms.exec(input);
+                if (matches[1]) hours = Number(matches[1]);
+                if (matches[2]) minutes = Number(matches[2]);
+                if (matches[3]) seconds = Number(matches[3]);
+                totalseconds = hours * 3600 + minutes * 60 + seconds;
+              }
 
-            if (!stitle) {
-              stitle = sartist;
-              sartist = "Unknown";
+              if (!stitle) {
+                stitle = sartist;
+                sartist = "Unknown";
+              }
+              var now = Date.now();
+              var songInfo = {
+                type: data[nextSongkey].type,
+                cid: data[nextSongkey].cid,
+                title: stitle,
+                started: now,
+                duration: totalseconds,
+                artist: sartist,
+                djid: theDJ.id,
+                key: nextSongkey
+              };
+              song = songInfo;
+              s2p.set(songInfo);
+              var removeThis = queueRef.child(song.key);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                  var sname = song.artist + " - " + song.title;
+                  var songBack = {
+                    cid: song.cid,
+                    name: sname,
+                    type: song.type
+                  };
+                  queueRef.push(songBack);
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              // set the timeout to move forward at end of song
+              if (songTimeout != null) {
+                clearTimeout(songTimeout);
+                songTimeout = null;
+              }
+              songTimeout = setTimeout(function() {
+                songTimeout = null;
+                nextSong(); //NEEEEEEXT
+              }, totalseconds * 1000);
             }
-            var now = Date.now();
-            var songInfo = {
-              type: data[nextSongkey].type,
-              cid: data[nextSongkey].cid,
-              title: stitle,
-              started: now,
-              duration: totalseconds,
-              artist: sartist,
-              djid: theDJ.id,
-              key: nextSongkey
-            };
-            song = songInfo;
-            s2p.set(songInfo);
-            var removeThis = queueRef.child(song.key);
-            removeThis.remove()
-              .then(function() {
-                console.log("song remove went great.");
-                var sname = song.artist + " - " + song.title;
-                var songBack = {
-                  cid: song.cid,
-                  name: sname,
-                  type: song.type
-                };
-                queueRef.push(songBack);
-              })
-              .catch(function(error) {
-                console.log("Song Remove failed: " + error.message);
-              });
-            // set the timeout to move forward at end of song
-            if (songTimeout != null) {
-              clearTimeout(songTimeout);
-              songTimeout = null;
-            }
-            songTimeout = setTimeout(function() {
-              songTimeout = null;
-              nextSong(); //NEEEEEEXT
-            }, totalseconds * 1000);
           }
-        }
-      });
+        });
+
+      } else if (data[nextSongkey].type == 2) {
+        SC.get('/tracks?ids='+data[nextSongkey].cid, function(err, tracks) {
+              if (tracks.length){
+                  //exists!
+                  var totalseconds = Math.floor(tracks[0].duration / 1000);
+                  var s2p = firebase.database().ref("songToPlay");
+                  var yargo = data[nextSongkey].name.split(" - ");
+                  var sartist = yargo[0];
+                  var stitle = yargo[1];
+
+                  if (!stitle) {
+                    stitle = sartist;
+                    sartist = "Unknown";
+                  }
+                  var now = Date.now();
+                  var songInfo = {
+                    type: data[nextSongkey].type,
+                    cid: data[nextSongkey].cid,
+                    title: stitle,
+                    started: now,
+                    duration: totalseconds,
+                    artist: sartist,
+                    djid: theDJ.id,
+                    key: nextSongkey
+                  };
+                  song = songInfo;
+                  s2p.set(songInfo);
+                  var removeThis = queueRef.child(song.key);
+                  removeThis.remove()
+                    .then(function() {
+                      console.log("song remove went great.");
+                      var sname = song.artist + " - " + song.title;
+                      var songBack = {
+                        cid: song.cid,
+                        name: sname,
+                        type: song.type
+                      };
+                      queueRef.push(songBack);
+                    })
+                    .catch(function(error) {
+                      console.log("Song Remove failed: " + error.message);
+                    });
+                  // set the timeout to move forward at end of song
+                  if (songTimeout != null) {
+                    clearTimeout(songTimeout);
+                    songTimeout = null;
+                  }
+                  songTimeout = setTimeout(function() {
+                    songTimeout = null;
+                    nextSong(); //NEEEEEEXT
+                  }, totalseconds * 1000);
+              } else {
+                  //does not exist
+                  var removeThis = firebase.database().ref('queues/' + theDJ.id + '/' + nextSongkey);
+                  removeThis.remove()
+                    .then(function() {
+                      console.log("song remove went great.");
+                    })
+                    .catch(function(error) {
+                      console.log("Song Remove failed: " + error.message);
+                    });
+                  talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+                  setTimeout(function() {
+                    startSong(); //try again with SAME DJ
+                  }, 3000);
+              }
+        });
+      }
 
     } else {
       console.log("no songs in queue... remove this DJ");
@@ -402,9 +476,11 @@ var ref2 = firebase.database().ref("users");
 ref2.on('value', function(dataSnapshot) {
   var okdata = dataSnapshot.val();
   users = okdata;
-  if (!okdata[botid].status){
-    var statusref = firebase.database().ref("users/" + botid + "/status");
-    statusref.set(true);
+  if (botid){
+    if (!okdata[botid].status) {
+      var statusref = firebase.database().ref("users/" + botid + "/status");
+      statusref.set(true);
+    }
   }
 });
 var ref = firebase.database().ref("chat");
