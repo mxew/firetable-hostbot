@@ -409,13 +409,14 @@ var removeMe = function(id) {
         updateWaitlist();
       }
       updateTable();
-      if (id == theDJ.id) {
-        nextSong();
-      }
-      if (i < playDex) {
+
+      if (i <= playDex) {
         //shift spotlight to the left if a dj to the left of it leaves
         playDex = playDex - 1;
         updatePlaydex();
+      }
+      if (id == theDJ.id) {
+        nextSong();
       }
       return true;
     }
