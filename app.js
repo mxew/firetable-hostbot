@@ -186,6 +186,7 @@ var startSong = function() {
       title: "Is Playing",
       started: now,
       duration: 0,
+      image: "img/discoball.png",
       artist: "Nothing"
     };
     song = songInfo;
@@ -232,7 +233,8 @@ var startSong = function() {
               startSong(); //try again with SAME DJ
             }, 3000);
           } else {
-            console.log(result);
+            console.log(result.items[0].snippet);
+
             if (!result.items.length) {
               var removeThis = queueRef.child(nextSongkey);
               removeThis.remove()
@@ -279,6 +281,7 @@ var startSong = function() {
                 started: now,
                 duration: totalseconds,
                 artist: sartist,
+                image: result.items[0].snippet.thumbnails.medium.url,
                 djid: theDJ.id,
                 key: nextSongkey
               };
@@ -314,8 +317,10 @@ var startSong = function() {
 
       } else if (data[nextSongkey].type == 2) {
         SC.get('/tracks?ids='+data[nextSongkey].cid, function(err, tracks) {
+          console.log(tracks);
               if (tracks.length){
                   //exists!
+                  console.log(tracks[0]);
                   var totalseconds = Math.floor(tracks[0].duration / 1000);
                   var s2p = firebase.database().ref("songToPlay");
                   var yargo = data[nextSongkey].name.split(" - ");
@@ -334,6 +339,7 @@ var startSong = function() {
                     started: now,
                     duration: totalseconds,
                     artist: sartist,
+                    image: tracks[0].artwork_url,
                     djid: theDJ.id,
                     key: nextSongkey
                   };
