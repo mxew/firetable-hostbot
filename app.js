@@ -283,6 +283,7 @@ var startSong = function() {
                 artist: sartist,
                 image: result.items[0].snippet.thumbnails.medium.url,
                 djid: theDJ.id,
+                djname: theDJ.name,
                 key: nextSongkey
               };
               song = songInfo;
@@ -341,6 +342,7 @@ var startSong = function() {
                     artist: sartist,
                     image: tracks[0].artwork_url,
                     djid: theDJ.id,
+                    djname: theDJ.name,
                     key: nextSongkey
                   };
                   song = songInfo;
