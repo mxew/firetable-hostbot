@@ -186,7 +186,7 @@ var startSong = function() {
       title: "Is Playing",
       started: now,
       duration: 0,
-      image: "img/discoball.png",
+      image: "img/idlogo.png",
       artist: "Nothing"
     };
     song = songInfo;
@@ -286,6 +286,7 @@ var startSong = function() {
                 djname: theDJ.name,
                 key: nextSongkey
               };
+              if (typeof songInfo.image == "undefined") songInfo.image = "img/idlogo.png";
               song = songInfo;
               s2p.set(songInfo);
               var removeThis = queueRef.child(song.key);
@@ -345,6 +346,7 @@ var startSong = function() {
                     djname: theDJ.name,
                     key: nextSongkey
                   };
+                  if (typeof songInfo.image == "undefined") songInfo.image = "img/idlogo.png";
                   song = songInfo;
                   s2p.set(songInfo);
                   var removeThis = queueRef.child(song.key);
