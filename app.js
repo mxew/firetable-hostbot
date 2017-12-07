@@ -13,6 +13,7 @@ var users = {};
 var botid = null;
 var started = false;
 var queue = [];
+var removalPending = {};
 var queueRef = null;
 theDJ = null;
 var table = [];
@@ -183,11 +184,11 @@ var startSong = function() {
     var songInfo = {
       type: 1,
       cid: 0,
-      title: "Is Playing",
+      title: "Nothing Is Playing",
       started: now,
       duration: 0,
       image: "img/idlogo.png",
-      artist: "Nothing"
+      artist: "You could (should) queue something!"
     };
     song = songInfo;
     s2p.set(songInfo);
@@ -627,14 +628,43 @@ setInterval(function() {
       }
     }
   });
+}, 5 * 60000);
+
+setInterval(function() {
+  // check every two minutes to see if people in the waitlist and table are here
+  // one warning if not here the first check, removed after second check.
   for (var i = 0; i < table.length; i++) {
     if (!users[table[i].id].status) {
-      removeMe(table[i].id);
+      if (!removalPending[table[i].id]){
+        removalPending[table[i].id] = true;
+        console.log(table[i].id + " removal pending.");
+      } else {
+        removalPending[table[i].id] = null;
+        console.log(table[i].id + " removed");
+        removeMe(table[i].id);
+      }
     }
   }
   for (var i = 0; i < queue.length; i++) {
     if (!users[queue[i].id].status) {
-      removeMe(queue[i].id);
+      if (!removalPending[queue[i].id]){
+        removalPending[queue[i].id] = true;
+        console.log(queue[i].id + " removal pending.");
+
+      } else {
+        removalPending[queue[i].id] = null;
+        console.log(queue[i].id + " removed");
+        removeMe(queue[i].id);
+      }
     }
   }
-}, 5 * 60000);
+  var pendings = removalPending;
+  for (key in pendings) {
+    if (pendings.hasOwnProperty(key)) {
+      if (users[key].status && removalPending[key]){
+        console.log("removal for "+key+" aborted");
+        removalPending[key] = null;
+      }
+    }
+  }
+}, 2 * 60000);
