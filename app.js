@@ -217,7 +217,7 @@ var startSong = function() {
       var nextSongkey = Object.keys(data)[0];
       if (data[nextSongkey].type == 1) {
         youTube.getById(data[nextSongkey].cid, function(error, result) {
-          if (error) {
+          if (error || !result.items) {
             console.log(error);
             //SONG DOES NOT EXIST ON YT
             var removeThis = queueRef.child(nextSongkey);
@@ -286,7 +286,7 @@ var startSong = function() {
                 djname: theDJ.name,
                 key: nextSongkey
               };
-              if (typeof songInfo.image == "undefined") songInfo.image = "img/idlogo.png";
+              if (!songInfo.image) songInfo.image = "img/idlogo.png";
               song = songInfo;
               s2p.set(songInfo);
               var removeThis = queueRef.child(song.key);
@@ -320,6 +320,7 @@ var startSong = function() {
       } else if (data[nextSongkey].type == 2) {
         SC.get('/tracks?ids='+data[nextSongkey].cid, function(err, tracks) {
           console.log(tracks);
+          if (tracks){
               if (tracks.length){
                   //exists!
                   console.log(tracks[0]);
@@ -346,7 +347,7 @@ var startSong = function() {
                     djname: theDJ.name,
                     key: nextSongkey
                   };
-                  if (typeof songInfo.image == "undefined") songInfo.image = "img/idlogo.png";
+                  if (!songInfo.image) songInfo.image = "img/idlogo.png";
                   song = songInfo;
                   s2p.set(songInfo);
                   var removeThis = queueRef.child(song.key);
@@ -388,6 +389,21 @@ var startSong = function() {
                     startSong(); //try again with SAME DJ
                   }, 3000);
               }
+            } else {
+              //does not exist
+              var removeThis = queueRef.child(nextSongkey);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              setTimeout(function() {
+                startSong(); //try again with SAME DJ
+              }, 3000);
+            }
         });
       }
 

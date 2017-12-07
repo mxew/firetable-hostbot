@@ -13,3 +13,4 @@ pairs with a client side front end ([firetable-user](https://github.com/mxew/fir
 - node.js
 - firebase ^3.6.7
 - youtube-node ^1.3.0
+- node-soundcloud 0.0.6
