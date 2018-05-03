@@ -1,6 +1,6 @@
 var firebase = require('firebase');
 var YouTube = require('youtube-node');
-
+var Vibrant = require('node-vibrant');
 var youTube = new YouTube();
 var SC = require('node-soundcloud')
 
@@ -192,9 +192,17 @@ var startSong = function() {
     };
     song = songInfo;
     s2p.set(songInfo);
+    var clrs = "#fff";
+    var textcol = "#fff";
+    var colref = firebase.database().ref("colors");
+    var thecolors = {
+      color: clrs,
+      txt: textcol
+    };
+    colref.set(thecolors);
     updateThings();
     return false;
-  }
+  };
   maxindex = table.length - 1;
   if (playDex > maxindex) {
     playDex = 0;
@@ -287,7 +295,30 @@ var startSong = function() {
                 djname: theDJ.name,
                 key: nextSongkey
               };
-              if (!songInfo.image) songInfo.image = "img/idlogo.png";
+              var clrs = "#fff";
+              var textcol = "#fff";
+              var colref = firebase.database().ref("colors");
+              if (!songInfo.image) {
+                songInfo.image = "img/idlogo.png";
+                var clrs1 = {
+                  color: clrs,
+                  txt: textcol
+                };
+                colref.set(clrs1);
+              } else {
+                Vibrant.from(songInfo.image).getPalette(function(err, palette) {
+                  console.log(palette);
+                  if (palette.Vibrant) {
+                    clrs = palette.Vibrant.getHex();
+                    textcol = palette.Vibrant.getBodyTextColor();
+                  }
+                  var thecolors = {
+                    color: clrs,
+                    txt: textcol
+                  };
+                  colref.set(thecolors);
+                });
+              }
               song = songInfo;
               s2p.set(songInfo);
               var removeThis = queueRef.child(song.key);
@@ -319,77 +350,86 @@ var startSong = function() {
         });
 
       } else if (data[nextSongkey].type == 2) {
-        SC.get('/tracks?ids='+data[nextSongkey].cid, function(err, tracks) {
+        SC.get('/tracks?ids=' + data[nextSongkey].cid, function(err, tracks) {
           console.log(tracks);
-          if (tracks){
-              if (tracks.length){
-                  //exists!
-                  console.log(tracks[0]);
-                  var totalseconds = Math.floor(tracks[0].duration / 1000);
-                  var s2p = firebase.database().ref("songToPlay");
-                  var yargo = data[nextSongkey].name.split(" - ");
-                  var sartist = yargo[0];
-                  var stitle = yargo[1];
+          if (tracks) {
+            if (tracks.length) {
+              //exists!
+              console.log(tracks[0]);
+              var totalseconds = Math.floor(tracks[0].duration / 1000);
+              var s2p = firebase.database().ref("songToPlay");
+              var yargo = data[nextSongkey].name.split(" - ");
+              var sartist = yargo[0];
+              var stitle = yargo[1];
 
-                  if (!stitle) {
-                    stitle = sartist;
-                    sartist = "Unknown";
-                  }
-                  var now = Date.now();
-                  var songInfo = {
-                    type: data[nextSongkey].type,
-                    cid: data[nextSongkey].cid,
-                    title: stitle,
-                    started: now,
-                    duration: totalseconds,
-                    artist: sartist,
-                    image: tracks[0].artwork_url,
-                    djid: theDJ.id,
-                    djname: theDJ.name,
-                    key: nextSongkey
-                  };
-                  if (!songInfo.image) songInfo.image = "img/idlogo.png";
-                  song = songInfo;
-                  s2p.set(songInfo);
-                  var removeThis = queueRef.child(song.key);
-                  removeThis.remove()
-                    .then(function() {
-                      console.log("song remove went great.");
-                      var sname = song.artist + " - " + song.title;
-                      var songBack = {
-                        cid: song.cid,
-                        name: sname,
-                        type: song.type
-                      };
-                      queueRef.push(songBack);
-                    })
-                    .catch(function(error) {
-                      console.log("Song Remove failed: " + error.message);
-                    });
-                  // set the timeout to move forward at end of song
-                  if (songTimeout != null) {
-                    clearTimeout(songTimeout);
-                    songTimeout = null;
-                  }
-                  songTimeout = setTimeout(function() {
-                    songTimeout = null;
-                    nextSong(); //NEEEEEEXT
-                  }, totalseconds * 1000);
-              } else {
-                  //does not exist
-                  var removeThis = queueRef.child(nextSongkey);
-                  removeThis.remove()
-                    .then(function() {
-                      console.log("song remove went great.");
-                    })
-                    .catch(function(error) {
-                      console.log("Song Remove failed: " + error.message);
-                    });
-                  talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
-                  setTimeout(function() {
-                    startSong(); //try again with SAME DJ
-                  }, 3000);
+              if (!stitle) {
+                stitle = sartist;
+                sartist = "Unknown";
               }
+              var now = Date.now();
+              var songInfo = {
+                type: data[nextSongkey].type,
+                cid: data[nextSongkey].cid,
+                title: stitle,
+                started: now,
+                duration: totalseconds,
+                artist: sartist,
+                image: tracks[0].artwork_url,
+                djid: theDJ.id,
+                djname: theDJ.name,
+                key: nextSongkey
+              };
+              var colref = firebase.database().ref("colors");
+              var clrs = "#fff";
+              var textcol = "#fff";
+              var colref = firebase.database().ref("colors");
+              if (!songInfo.image) {
+                songInfo.image = "img/idlogo.png";
+                var clrs1 = {
+                  color: clrs,
+                  txt: textcol
+                };
+                colref.set(clrs1);
+              } else {
+                Vibrant.from(songInfo.image).getPalette(function(err, palette) {
+                  console.log(palette);
+                  if (palette.Vibrant) {
+                    clrs = palette.Vibrant.getHex();
+                    textcol = palette.Vibrant.getBodyTextColor();
+                  }
+                  var thecolors = {
+                    color: clrs,
+                    txt: textcol
+                  };
+                  colref.set(thecolors);
+                });
+              }
+              song = songInfo;
+              s2p.set(songInfo);
+              var removeThis = queueRef.child(song.key);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                  var sname = song.artist + " - " + song.title;
+                  var songBack = {
+                    cid: song.cid,
+                    name: sname,
+                    type: song.type
+                  };
+                  queueRef.push(songBack);
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              // set the timeout to move forward at end of song
+              if (songTimeout != null) {
+                clearTimeout(songTimeout);
+                songTimeout = null;
+              }
+              songTimeout = setTimeout(function() {
+                songTimeout = null;
+                nextSong(); //NEEEEEEXT
+              }, totalseconds * 1000);
             } else {
               //does not exist
               var removeThis = queueRef.child(nextSongkey);
@@ -405,6 +445,21 @@ var startSong = function() {
                 startSong(); //try again with SAME DJ
               }, 3000);
             }
+          } else {
+            //does not exist
+            var removeThis = queueRef.child(nextSongkey);
+            removeThis.remove()
+              .then(function() {
+                console.log("song remove went great.");
+              })
+              .catch(function(error) {
+                console.log("Song Remove failed: " + error.message);
+              });
+            talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+            setTimeout(function() {
+              startSong(); //try again with SAME DJ
+            }, 3000);
+          }
         });
       }
 
@@ -504,7 +559,7 @@ var ref2 = firebase.database().ref("users");
 ref2.on('value', function(dataSnapshot) {
   var okdata = dataSnapshot.val();
   users = okdata;
-  if (botid){
+  if (botid) {
     if (!okdata[botid].status) {
       var statusref = firebase.database().ref("users/" + botid + "/status");
       statusref.set(true);
@@ -635,7 +690,7 @@ setInterval(function() {
   // one warning if not here the first check, removed after second check.
   for (var i = 0; i < table.length; i++) {
     if (!users[table[i].id].status) {
-      if (!removalPending[table[i].id]){
+      if (!removalPending[table[i].id]) {
         removalPending[table[i].id] = true;
         console.log(table[i].id + " removal pending.");
       } else {
@@ -647,7 +702,7 @@ setInterval(function() {
   }
   for (var i = 0; i < queue.length; i++) {
     if (!users[queue[i].id].status) {
-      if (!removalPending[queue[i].id]){
+      if (!removalPending[queue[i].id]) {
         removalPending[queue[i].id] = true;
         console.log(queue[i].id + " removal pending.");
 
@@ -661,8 +716,8 @@ setInterval(function() {
   var pendings = removalPending;
   for (key in pendings) {
     if (pendings.hasOwnProperty(key)) {
-      if (users[key].status && removalPending[key]){
-        console.log("removal for "+key+" aborted");
+      if (users[key].status && removalPending[key]) {
+        console.log("removal for " + key + " aborted");
         removalPending[key] = null;
       }
     }
