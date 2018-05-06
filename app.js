@@ -620,6 +620,58 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
           nextSong();
         }
+      } else if (command == "upbot") {
+        if (users[chatData.id].mod || users[chatData.id].supermod) {
+          var namebo2 = botid;
+          if (users[botid]) {
+            if (users[botid].username) namebo2 = users[botid].username;
+          }
+          var check = addCheck(botid);
+          if (!check) {
+            var pson = {
+              name: namebo2,
+              id: botid,
+              plays: 0
+            };
+            if (table.length >= 4) {
+              // table full. time to be on the waitlist now k
+              queue.push(pson);
+              talk(namebo2 + " (that's me) added to waitlist. Length is now " + queue.length);
+              updateWaitlist();
+              updateLimit();
+            } else {
+              //table has room. add to table directly
+              talk("OK! I will DJ.");
+              if (table.length == 0) {
+                table.push(pson);
+                console.log(table);
+                playDex = 0;
+                startSong();
+              } else {
+                table.push(pson);
+                console.log(table);
+                updateTable();
+                updateLimit();
+              }
+            }
+          } else {
+            if (check == 1) {
+              talk("I am already in the waitlist.");
+            } else if (check == 2) {
+              talk("I am already on deck.");
+            }
+          }
+
+        }
+      } else if (command == "downbot") {
+        if (users[chatData.id].mod || users[chatData.id].supermod) {
+          var removed = removeMe(botid);
+          if (!removed){
+            talk(namebo + ", I am not even DJing...");
+          } else {
+            talk("OK! I will not DJ.");
+          }
+        }
       } else if (command == "remove") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
           var prsnToRemove = uidLookup(args);
