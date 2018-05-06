@@ -242,8 +242,7 @@ var startSong = function() {
               startSong(); //try again with SAME DJ
             }, 3000);
           } else {
-            console.log(result.items[0].snippet);
-
+            console.log(result);
             if (!result.items.length) {
               var removeThis = queueRef.child(nextSongkey);
               removeThis.remove()
