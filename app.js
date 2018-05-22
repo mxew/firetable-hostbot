@@ -186,6 +186,7 @@ var startSong = function() {
       cid: 0,
       title: "Nothing Is Playing",
       started: now,
+      url: null,
       duration: 0,
       image: "img/idlogo.png",
       artist: "You could (should) queue something!"
@@ -288,6 +289,7 @@ var startSong = function() {
                 title: stitle,
                 started: now,
                 duration: totalseconds,
+                url: "https://www.youtube.com/watch?v=" + data[nextSongkey].cid,
                 artist: sartist,
                 image: result.items[0].snippet.thumbnails.medium.url,
                 djid: theDJ.id,
@@ -371,6 +373,7 @@ var startSong = function() {
                 cid: data[nextSongkey].cid,
                 title: stitle,
                 started: now,
+                url: tracks[0].permalink_url,
                 duration: totalseconds,
                 artist: sartist,
                 image: tracks[0].artwork_url,
@@ -666,7 +669,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
       } else if (command == "downbot") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
           var removed = removeMe(botid);
-          if (!removed){
+          if (!removed) {
             talk(namebo + ", I am not even DJing...");
           } else {
             talk("OK! I will not DJ.");
@@ -698,6 +701,14 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         }
       } else if (command == "wait") {
         talk("wait");
+      } else if (command == "link") {
+        if (song) {
+          if (song.url) {
+            talk(song.url);
+          } else {
+            talk("Nothing is playing...");
+          }
+        }
       }
     }
   }
