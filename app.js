@@ -675,6 +675,19 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             talk("OK! I will not DJ.");
           }
         }
+      } else if (command == "screen" || command == "screendown") {
+        if (users[chatData.id].mod || users[chatData.id].supermod) {
+            talk("activating the screen.");
+            var thescreen = firebase.database().ref("thescreen");
+            thescreen.set(true);
+        }
+      } else if (command == "killscreen" || command == "screenup") {
+        if (users[chatData.id].mod || users[chatData.id].supermod) {
+            talk("ok.");
+            var thescreen = firebase.database().ref("thescreen");
+            thescreen.set(false)
+          }
+        
       } else if (command == "remove") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
           var prsnToRemove = uidLookup(args);
