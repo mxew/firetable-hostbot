@@ -151,6 +151,64 @@ var updatePlaydex = function() {
   playdex2.set(playDex);
 };
 
+var firelevel = {
+  hot: function(id, name) {
+    firelevel.fires[id] = true;
+    firelevel.storms[id] = false;
+    var fires = firelevel.size(firelevel.fires);
+    var storms = firelevel.size(firelevel.storms);
+    var level = fires - storms;
+    console.log(level);
+    if (level <= 0){
+      talk(name+ " thinks this track is h0t... doesn't seem very hot...");
+    } else if (level == 1){
+      talk(name+ " thinks this track is h0t! A small fire has started.");
+    } else if (level <= 7){
+      talk(name+ " thinks this track is h0t! Fire is burnin' :chart_with_upwards_trend:");
+    } else {
+      talk(name+ " thinks this track is h0t! FIRE LEVEL IS OFF THE CHARTS. CHARTS ON FIRE!");
+    }
+  },
+  storm: function(id, name) {
+    firelevel.fires[id] = false;
+    firelevel.storms[id] = true;
+    var fires = firelevel.size(firelevel.fires);
+    var storms = firelevel.size(firelevel.storms);
+    var level = fires - storms;
+    console.log(level);
+    if (level >= 4){
+      talk(name+ " is trying to put out the DJ's fire... doesn't seem to matter...");
+    } else if (level >= 1){
+      talk(name+ " is trying to put out the DJ's fire... maybe this track isn't so hot afterall...");
+    } else if (level == 0){
+      talk("fire is out. thanks "+ name);
+    } else if (level == -1){
+      talk("this track has caused a storm to form around "+name+". hard to start a fire with all this rain...");
+    } else if (level >= -5){
+      talk("the storm has expanded with the help of "+name+". certainly not a h0t track.");
+    } else {
+      talk(":rotating_light: :warning: SEVERE WEATHER ALERT. STAY FAR AWAY FROM THIS TRACK.");
+    }
+  },
+  clear: function(){
+    firelevel.fires = {};
+    firelevel.storms = {};
+  },
+  fires: {},
+  storms: {},
+  size: function(obj) {
+    var size = 0;
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)){
+        if (obj[key]){
+          size++;
+        }
+      }
+    }
+    return size;
+  }
+};
+
 var updateThings = function() {
   updateTable();
   updateWaitlist();
@@ -177,6 +235,7 @@ var nextSong = function() {
 
 var startSong = function() {
   console.log(table.length);
+  firelevel.clear();
   if (!table.length) {
     console.log("no length");
     var s2p = firebase.database().ref("songToPlay");
@@ -677,17 +736,17 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         }
       } else if (command == "screen" || command == "screendown") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
-            talk("activating the screen.");
-            var thescreen = firebase.database().ref("thescreen");
-            thescreen.set(true);
+          talk("activating the screen.");
+          var thescreen = firebase.database().ref("thescreen");
+          thescreen.set(true);
         }
       } else if (command == "killscreen" || command == "screenup") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
-            talk("ok.");
-            var thescreen = firebase.database().ref("thescreen");
-            thescreen.set(false)
-          }
-        
+          talk("ok.");
+          var thescreen = firebase.database().ref("thescreen");
+          thescreen.set(false)
+        }
+
       } else if (command == "remove") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
           var prsnToRemove = uidLookup(args);
@@ -714,6 +773,10 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         }
       } else if (command == "wait") {
         talk("wait");
+      } else if (command == "hot") {
+        firelevel.hot(chatData.id, namebo);
+      } else if (command == "storm") {
+        firelevel.storm(chatData.id, namebo);
       } else if (command == "link") {
         if (song) {
           if (song.url) {
@@ -723,6 +786,10 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           }
         }
       }
+    } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
+      firelevel.hot(chatData.id, namebo);
+    } else if (chatData.txt == "🌧" || chatData.txt == ":cloud_with_rain:") {
+      firelevel.storm(chatData.id, namebo);
     }
   }
 });
