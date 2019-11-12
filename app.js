@@ -639,7 +639,8 @@ var removePerson = function(id) {
   return false;
 };
 
-var addCheck = function(id) {
+var addCheck = function(id, hereCheck) {
+  if (!users[id].status && hereCheck) return 3;
   for (var i = 0; i < queue.length; i++) {
     if (queue[i].id == id) {
       return 1;
@@ -790,6 +791,51 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           if (prsnToRemove) {
             var removed = removeMe(prsnToRemove);
             if (!removed) talk("Can not remove " + args + " because they are not on the table or in the waitlist. Thanks.");
+          } else {
+            talk("who is that");
+          }
+        }
+      } else if (command == "add") {
+        if (users[chatData.id].mod || users[chatData.id].supermod) {
+          var prsnToAdd = uidLookup(args);
+          if (prsnToAdd) {
+            var check = addCheck(prsnToAdd, true);
+            if (!check) {
+              var pson = {
+                name: users[prsnToAdd].username,
+                id: prsnToAdd,
+                plays: 0
+              };
+              if (table.length >= 4) {
+                // table full. time to be on the waitlist now k
+                queue.push(pson);
+                talk(users[prsnToAdd].username + " added to waitlist. Length is now " + queue.length);
+                updateWaitlist();
+                updateLimit();
+              } else {
+                //table has room. add to table directly
+                if (table.length == 0) {
+                  table.push(pson);
+                  console.log(table);
+                  playDex = 0;
+                  startSong();
+                } else {
+                  table.push(pson);
+                  console.log(table);
+                  updateTable();
+                  updateLimit();
+                }
+              }
+            } else {
+              if (check == 1) {
+                talk(users[prsnToAdd].username + " is already in the waitlist.");
+              } else if (check == 2) {
+                talk(users[prsnToAdd].username + " is already on deck.");
+              } else if (check == 3){
+                talk(users[prsnToAdd].username + " is almost for sure not here.");
+              }
+            }
+
           } else {
             talk("who is that");
           }
