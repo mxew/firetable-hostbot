@@ -1,3 +1,5 @@
+var request = require('request');
+
 var firebase = require('firebase');
 var YouTube = require('youtube-node');
 var Vibrant = require('node-vibrant');
@@ -23,6 +25,9 @@ var song = {};
 var playDex = 0; //where does the spotlight go? (tracks SEATS not people)
 
 var songTimeout = null;
+var adam_last = null;
+var songtimer = null;
+
 var configs = {
   apiKey: config.firebase.key,
   authDomain: config.firebase.auth,
@@ -236,6 +241,10 @@ var nextSong = function() {
 var startSong = function() {
   console.log(table.length);
   firelevel.clear();
+  if (songtimer != null) {
+    clearTimeout(songtimer);
+    songtimer = null;
+  }
   if (!table.length) {
     console.log("no length");
     var s2p = firebase.database().ref("songToPlay");
@@ -337,10 +346,22 @@ var startSong = function() {
                 totalseconds = hours * 3600 + minutes * 60 + seconds;
               }
 
+              lastfm.duration = totalseconds;
+              lastfm.songStart = Math.floor((new Date()).getTime() / 1000);
+              if (songtimer != null) {
+                clearTimeout(songtimer);
+                songtimer = null;
+              }
+              songtimer = setTimeout(function() {
+                songtimer = null;
+                 lastfm.scrobble();
+              }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
                 sartist = "Unknown";
               }
+              var adamString = sartist + " - " + stitle;
+              if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var now = Date.now();
               var songInfo = {
                 type: data[nextSongkey].type,
@@ -381,6 +402,8 @@ var startSong = function() {
               }
               song = songInfo;
               s2p.set(songInfo);
+              lastfm.nowPlaying();
+
               var removeThis = queueRef.child(song.key);
               removeThis.remove()
                 .then(function() {
@@ -417,6 +440,16 @@ var startSong = function() {
               //exists!
               console.log(tracks[0]);
               var totalseconds = Math.floor(tracks[0].duration / 1000);
+              lastfm.duration = totalseconds;
+              lastfm.songStart = Math.floor((new Date()).getTime() / 1000);
+              if (songtimer != null) {
+                clearTimeout(songtimer);
+                songtimer = null;
+              }
+              songtimer = setTimeout(function() {
+                songtimer = null;
+                 lastfm.scrobble();
+              }, (totalseconds * 1000) - 3000);
               var s2p = firebase.database().ref("songToPlay");
               var yargo = data[nextSongkey].name.split(" - ");
               var sartist = yargo[0];
@@ -426,6 +459,8 @@ var startSong = function() {
                 stitle = sartist;
                 sartist = "Unknown";
               }
+              var adamString = sartist + " - " + stitle;
+              if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var now = Date.now();
               var songInfo = {
                 type: data[nextSongkey].type,
@@ -467,6 +502,8 @@ var startSong = function() {
               }
               song = songInfo;
               s2p.set(songInfo);
+              lastfm.nowPlaying();
+
               var removeThis = queueRef.child(song.key);
               removeThis.remove()
                 .then(function() {
@@ -794,6 +831,171 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
   }
 });
 
+var adam = {
+  np: function(song_name, dj, link, source){
+    if (!config.adam.url) return;
+    var thesource = "youtube";
+    if (source == 2){
+      thesource = "soundcloud"
+    }
+    var adam_data = {
+      data: {
+        song_name: song_name,
+        dj: dj,
+        link: link,
+        source: thesource
+      }
+    };
+    // try posting to ADAM
+    var options = {
+      method: "POST",
+      url: config.adam.url + "/new_song",
+      headers: {
+        "Content-Type": "text/html;charset=utf-8"
+      },
+      form: adam_data
+    };
+
+    request(options, function(err1, res1, body1) {
+      if (err1) console.log(err1);
+      console.log(body1);
+      if (body1) {
+        try {
+        var adm = JSON.parse(body1);
+        adam_last = adm;
+
+          console.log(adm);
+          if (adm){
+            if (adm.artist) song.artist = adm.artist;
+            if (adm.title) song.title = adm.title;
+          }
+        } catch (e){
+          console.log(e);
+        }
+      }
+    });
+  }
+};
+
+var lastfm = {
+  sk: config.lastfm.sessionkey, //for last.fm user tt_discotheque
+  key: config.lastfm.apikey,
+  songStart: null,
+  duration: null,
+  scrobble: function() {
+    var artist = song.artist;
+    var track = song.title;
+
+    var params = {
+      artist: artist,
+      track: track,
+      timestamp: lastfm.songStart,
+      api_key: lastfm.key,
+      sk: lastfm.sk,
+      method: "track.scrobble"
+    };
+
+    var sig = lastfm.getApiSignature(params);
+    params.api_sig = sig;
+
+    var request_url = 'https://ws.audioscrobbler.com/2.0/?' + serialize(params);
+
+    var request_url = 'https://ws.audioscrobbler.com/2.0/?' + serialize(params);
+    var options = {
+      method: "POST",
+      url: request_url
+    };
+
+    request(options, function(err1, res1, body1) {
+      if (err1) console.log(err1);
+      console.log(body1);
+    });
+  },
+  love: function() {
+    var artist = song.artist;
+    var track = song.title;
+
+    var params = {
+      artist: artist,
+      track: track,
+      api_key: lastfm.key,
+      sk: lastfm.sk,
+      method: "track.love"
+    };
+
+    var sig = lastfm.getApiSignature(params);
+    params.api_sig = sig;
+
+    var request_url = 'https://ws.audioscrobbler.com/2.0/?' + serialize(params);
+    var options = {
+      method: "POST",
+      url: request_url
+    };
+
+    request(options, function(err1, res1, body1) {
+      if (err1) console.log(err1);
+      console.log(body1);
+    });
+
+  },
+  _onAjaxError: function(xhr, status, error) {
+    console.log(xhr);
+    console.log(status);
+    console.log(error);
+  },
+  nowPlaying: function() {
+    var artist = song.artist;
+    var track = song.title;
+
+    var params = {
+      artist: artist,
+      track: track,
+      duration: lastfm.duration,
+      api_key: lastfm.key,
+      sk: lastfm.sk,
+      method: "track.updateNowPlaying"
+    };
+
+    var sig = lastfm.getApiSignature(params);
+    params.api_sig = sig;
+
+    var request_url = 'https://ws.audioscrobbler.com/2.0/?' + serialize(params);
+
+    var request_url = 'https://ws.audioscrobbler.com/2.0/?' + serialize(params);
+    var options = {
+      method: "POST",
+      url: request_url
+    };
+
+    request(options, function(err1, res1, body1) {
+      if (err1) console.log(err1);
+      console.log(body1);
+    });
+
+  },
+  getApiSignature: function(params) {
+    var i, key, keys, max, paramString;
+
+    keys = [];
+    paramString = "";
+
+    for (key in params) {
+      if (params.hasOwnProperty(key)) {
+        keys.push(key);
+      }
+    }
+    keys.sort();
+
+    for (i = 0, max = keys.length; i < max; i += 1) {
+      key = keys[i];
+      paramString += key + params[key];
+    }
+
+    return calcMD5(paramString + "e036a3702ce27990966173ce591fe14c");
+  }
+};
+
+
 setTimeout(function() {
   ignoreChats = false;
   console.log("Listening now.");
@@ -865,3 +1067,186 @@ setInterval(function() {
     }
   }
 }, 2 * 60000);
+
+/*
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Copyright (C) Paul Johnston 1999 - 2000.
+ * Updated by Greg Holt 2000 - 2001.
+ * See http://pajhome.org.uk/site/legal.html for details.
+ */
+
+/*
+ * Convert a 32-bit number to a hex string with ls-byte first
+ */
+var hex_chr = "0123456789abcdef";
+
+function rhex(num) {
+  str = "";
+  for (j = 0; j <= 3; j++)
+    str += hex_chr.charAt((num >> (j * 8 + 4)) & 0x0F) +
+    hex_chr.charAt((num >> (j * 8)) & 0x0F);
+  return str;
+}
+
+/*
+ * Convert a string to a sequence of 16-word blocks, stored as an array.
+ * Append padding bits and the length, as described in the MD5 standard.
+ */
+function str2blks_MD5(str) {
+  nblk = ((str.length + 8) >> 6) + 1;
+  blks = new Array(nblk * 16);
+  for (i = 0; i < nblk * 16; i++) blks[i] = 0;
+  for (i = 0; i < str.length; i++)
+    blks[i >> 2] |= str.charCodeAt(i) << ((i % 4) * 8);
+  blks[i >> 2] |= 0x80 << ((i % 4) * 8);
+  blks[nblk * 16 - 2] = str.length * 8;
+  return blks;
+}
+
+/*
+ * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+ * to work around bugs in some JS interpreters.
+ */
+function add(x, y) {
+  var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+  var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return (msw << 16) | (lsw & 0xFFFF);
+}
+
+/*
+ * Bitwise rotate a 32-bit number to the left
+ */
+function rol(num, cnt) {
+  return (num << cnt) | (num >>> (32 - cnt));
+}
+
+/*
+ * These functions implement the basic operation for each round of the
+ * algorithm.
+ */
+function cmn(q, a, b, x, s, t) {
+  return add(rol(add(add(a, q), add(x, t)), s), b);
+}
+
+function ff(a, b, c, d, x, s, t) {
+  return cmn((b & c) | ((~b) & d), a, b, x, s, t);
+}
+
+function gg(a, b, c, d, x, s, t) {
+  return cmn((b & d) | (c & (~d)), a, b, x, s, t);
+}
+
+function hh(a, b, c, d, x, s, t) {
+  return cmn(b ^ c ^ d, a, b, x, s, t);
+}
+
+function ii(a, b, c, d, x, s, t) {
+  return cmn(c ^ (b | (~d)), a, b, x, s, t);
+}
+
+/*
+ * Take a string and return the hex representation of its MD5.
+ */
+function calcMD5(str) {
+  x = str2blks_MD5(str);
+  a = 1732584193;
+  b = -271733879;
+  c = -1732584194;
+  d = 271733878;
+
+  for (i = 0; i < x.length; i += 16) {
+    olda = a;
+    oldb = b;
+    oldc = c;
+    oldd = d;
+
+    a = ff(a, b, c, d, x[i + 0], 7, -680876936);
+    d = ff(d, a, b, c, x[i + 1], 12, -389564586);
+    c = ff(c, d, a, b, x[i + 2], 17, 606105819);
+    b = ff(b, c, d, a, x[i + 3], 22, -1044525330);
+    a = ff(a, b, c, d, x[i + 4], 7, -176418897);
+    d = ff(d, a, b, c, x[i + 5], 12, 1200080426);
+    c = ff(c, d, a, b, x[i + 6], 17, -1473231341);
+    b = ff(b, c, d, a, x[i + 7], 22, -45705983);
+    a = ff(a, b, c, d, x[i + 8], 7, 1770035416);
+    d = ff(d, a, b, c, x[i + 9], 12, -1958414417);
+    c = ff(c, d, a, b, x[i + 10], 17, -42063);
+    b = ff(b, c, d, a, x[i + 11], 22, -1990404162);
+    a = ff(a, b, c, d, x[i + 12], 7, 1804603682);
+    d = ff(d, a, b, c, x[i + 13], 12, -40341101);
+    c = ff(c, d, a, b, x[i + 14], 17, -1502002290);
+    b = ff(b, c, d, a, x[i + 15], 22, 1236535329);
+
+    a = gg(a, b, c, d, x[i + 1], 5, -165796510);
+    d = gg(d, a, b, c, x[i + 6], 9, -1069501632);
+    c = gg(c, d, a, b, x[i + 11], 14, 643717713);
+    b = gg(b, c, d, a, x[i + 0], 20, -373897302);
+    a = gg(a, b, c, d, x[i + 5], 5, -701558691);
+    d = gg(d, a, b, c, x[i + 10], 9, 38016083);
+    c = gg(c, d, a, b, x[i + 15], 14, -660478335);
+    b = gg(b, c, d, a, x[i + 4], 20, -405537848);
+    a = gg(a, b, c, d, x[i + 9], 5, 568446438);
+    d = gg(d, a, b, c, x[i + 14], 9, -1019803690);
+    c = gg(c, d, a, b, x[i + 3], 14, -187363961);
+    b = gg(b, c, d, a, x[i + 8], 20, 1163531501);
+    a = gg(a, b, c, d, x[i + 13], 5, -1444681467);
+    d = gg(d, a, b, c, x[i + 2], 9, -51403784);
+    c = gg(c, d, a, b, x[i + 7], 14, 1735328473);
+    b = gg(b, c, d, a, x[i + 12], 20, -1926607734);
+
+    a = hh(a, b, c, d, x[i + 5], 4, -378558);
+    d = hh(d, a, b, c, x[i + 8], 11, -2022574463);
+    c = hh(c, d, a, b, x[i + 11], 16, 1839030562);
+    b = hh(b, c, d, a, x[i + 14], 23, -35309556);
+    a = hh(a, b, c, d, x[i + 1], 4, -1530992060);
+    d = hh(d, a, b, c, x[i + 4], 11, 1272893353);
+    c = hh(c, d, a, b, x[i + 7], 16, -155497632);
+    b = hh(b, c, d, a, x[i + 10], 23, -1094730640);
+    a = hh(a, b, c, d, x[i + 13], 4, 681279174);
+    d = hh(d, a, b, c, x[i + 0], 11, -358537222);
+    c = hh(c, d, a, b, x[i + 3], 16, -722521979);
+    b = hh(b, c, d, a, x[i + 6], 23, 76029189);
+    a = hh(a, b, c, d, x[i + 9], 4, -640364487);
+    d = hh(d, a, b, c, x[i + 12], 11, -421815835);
+    c = hh(c, d, a, b, x[i + 15], 16, 530742520);
+    b = hh(b, c, d, a, x[i + 2], 23, -995338651);
+
+    a = ii(a, b, c, d, x[i + 0], 6, -198630844);
+    d = ii(d, a, b, c, x[i + 7], 10, 1126891415);
+    c = ii(c, d, a, b, x[i + 14], 15, -1416354905);
+    b = ii(b, c, d, a, x[i + 5], 21, -57434055);
+    a = ii(a, b, c, d, x[i + 12], 6, 1700485571);
+    d = ii(d, a, b, c, x[i + 3], 10, -1894986606);
+    c = ii(c, d, a, b, x[i + 10], 15, -1051523);
+    b = ii(b, c, d, a, x[i + 1], 21, -2054922799);
+    a = ii(a, b, c, d, x[i + 8], 6, 1873313359);
+    d = ii(d, a, b, c, x[i + 15], 10, -30611744);
+    c = ii(c, d, a, b, x[i + 6], 15, -1560198380);
+    b = ii(b, c, d, a, x[i + 13], 21, 1309151649);
+    a = ii(a, b, c, d, x[i + 4], 6, -145523070);
+    d = ii(d, a, b, c, x[i + 11], 10, -1120210379);
+    c = ii(c, d, a, b, x[i + 2], 15, 718787259);
+    b = ii(b, c, d, a, x[i + 9], 21, -343485551);
+
+    a = add(a, olda);
+    b = add(b, oldb);
+    c = add(c, oldc);
+    d = add(d, oldd);
+  }
+  return rhex(a) + rhex(b) + rhex(c) + rhex(d);
+}
+
+var serialize = function(obj, prefix) {
+  var str = [];
+  for (var p in obj) {
+    if (obj.hasOwnProperty(p)) {
+      var k = prefix ? prefix + "[" + p + "]" : p,
+        v = obj[p];
+      str.push(typeof v == "object" ?
+        serialize(v, k) :
+        encodeURIComponent(k) + "=" + encodeURIComponent(v));
+    }
+  }
+  return str.join("&");
+}
