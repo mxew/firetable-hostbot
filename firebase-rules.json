@@ -1,76 +1,80 @@
 {
-  "rules": {
-    ".write": false,
-    ".read": false,
-    "chat": {
-      ".read": true,
-      "$comment": {
-        ".read": true,
-        ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))"
-      }
-    },
-    "thescreen": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "songToPlay": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "colors": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "queues": {
-      ".read": false,
-      "$uid": {
-        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
-      }
-    },
-    "playlists": {
-      ".read": false,
-      "$uid": {
-        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
-      }
-    },
-    "table": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "waitlist": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "playdex": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-
-    "playlimit": {
-      ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-    },
-    "users": {
-      ".read": true,
-      "$uid": {
-        "status": {
-          ".write": "auth.uid == $uid"
+    "rules": {
+        ".write": false,
+        ".read": false,
+        "chat": {
+            ".read": true,
+            "$comment": {
+                ".read": true,
+                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))"
+            }
         },
-        "mod": {
-          ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
-        },
-        "supermod": {
-          ".write": "false"
-        },
-        "selectedList": {
-          ".write": "auth.uid == $uid"
-        },
-        "username": {
+        "thescreen":{
+          ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "songToPlay": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "playHistory": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "colors": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "queues": {
+            ".read": false,
+            "$uid": {
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+            }
+        },
+        "playlists": {
+            ".read": false,
+            "$uid": {
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+            }
+        },
+        "table": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "waitlist": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "playdex": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+
+        "playlimit": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
+        "users": {
+            ".read": true,
+            "$uid": {
+                "status": {
+                    ".write": "auth.uid == $uid"
+                },
+                "mod": {
+                    ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
+                },
+                "supermod": {
+                    ".write": "false"
+                },
+                "selectedList": {
+                  	".write": "auth.uid == $uid"
+                },
+                "username": {
+            				".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+                }
+            }
         }
-      }
     }
-  }
 }

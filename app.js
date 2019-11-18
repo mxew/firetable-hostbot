@@ -241,6 +241,37 @@ var nextSong = function() {
 var startSong = function() {
   console.log(table.length);
   firelevel.clear();
+  if (song){
+    if (song.cid != 0){
+      var recentz = firebase.database().ref("songHistory");
+      var newEntry = {
+            artist: song.artist,
+            title: song.title,
+            dj: theDJ.name,
+            djid: theDJ.id,
+            type: song.type,
+            cid: song.cid,
+            when: song.started,
+            img: song.image
+        };
+      recentz.push(newEntry);
+      recentz.once("value", function(snapshot) {
+          var rdata = snapshot.val();
+          var allRecents = [];
+          for (var okey in rdata){
+              if (rdata.hasOwnProperty(okey)){
+                allRecents.push(okey);
+              }
+          }
+          if (allRecents.length > 50){
+              var shave = allRecents.length - 50;
+              for (var ayy = 0; ayy < shave; ayy++){
+                recentz.child(allRecents[ayy]).remove();
+              }
+          }
+      });
+    }
+  }
   if (songtimer != null) {
     clearTimeout(songtimer);
     songtimer = null;
