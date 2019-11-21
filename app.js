@@ -250,10 +250,13 @@ var startSong = function() {
             dj: theDJ.name,
             djid: theDJ.id,
             type: song.type,
+            url: song.url,
             cid: song.cid,
             when: song.started,
+            postedDate: song.postedDate,
             img: song.image
         };
+      if (song.adamid) newEntry.adamid = song.adamid;
       recentz.push(newEntry);
       recentz.once("value", function(snapshot) {
           var rdata = snapshot.val();
@@ -393,6 +396,8 @@ var startSong = function() {
               }
               var adamString = sartist + " - " + stitle;
               if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
+              var thedate = new Date(result.items[0].snippet.publishedAt);
+              var postedDate = thedate.getTime();
               var now = Date.now();
               var songInfo = {
                 type: data[nextSongkey].type,
@@ -404,6 +409,7 @@ var startSong = function() {
                 artist: sartist,
                 image: result.items[0].snippet.thumbnails.medium.url,
                 djid: theDJ.id,
+                postedDate: postedDate,
                 djname: theDJ.name,
                 key: nextSongkey
               };
@@ -492,6 +498,8 @@ var startSong = function() {
               }
               var adamString = sartist + " - " + stitle;
               if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
+              var thedate = new Date(tracks[0].created_at);
+              var postedDate = thedate.getTime();
               var now = Date.now();
               var songInfo = {
                 type: data[nextSongkey].type,
@@ -502,6 +510,7 @@ var startSong = function() {
                 duration: totalseconds,
                 artist: sartist,
                 image: tracks[0].artwork_url,
+                postedDate: postedDate,
                 djid: theDJ.id,
                 djname: theDJ.name,
                 key: nextSongkey
@@ -945,6 +954,7 @@ var adam = {
           if (adm){
             if (adm.artist) song.artist = adm.artist;
             if (adm.title) song.title = adm.title;
+            if (adm.track_id) song.adamid = adm.track_id;
           }
         } catch (e){
           console.log(e);
