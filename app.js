@@ -221,7 +221,7 @@ var updateThings = function() {
   updateLimit();
 };
 
-var nextSong = function() {
+var nextSong = function(noPrevPlay) {
   //we need to remove this song that just played to the bottom of dj's queue
   playDex++; //shift the spotlight to the right
   if (queue.length && theDJ) {
@@ -235,13 +235,13 @@ var nextSong = function() {
       }
     }
   }
-  startSong();
+  startSong(noPrevPlay);
 };
 
-var startSong = function() {
+var startSong = function(noPrevPlay) {
   console.log(table.length);
   firelevel.clear();
-  if (song){
+  if (song && !noPrevPlay){
     if (song.cid != 0){
       var recentz = firebase.database().ref("songHistory");
       var newEntry = {
@@ -342,7 +342,7 @@ var startSong = function() {
               });
             talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
             setTimeout(function() {
-              startSong(); //try again with SAME DJ
+              startSong(true); //try again with SAME DJ
             }, 3000);
           } else {
             console.log(result);
@@ -357,7 +357,7 @@ var startSong = function() {
                 });
               talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
-                startSong(); //try again with SAME DJ
+                startSong(true); //try again with SAME DJ
               }, 3000);
             } else {
               var input = result.items[0].contentDetails.duration;
@@ -580,7 +580,7 @@ var startSong = function() {
                 });
               talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
-                startSong(); //try again with SAME DJ
+                startSong(true); //try again with SAME DJ
               }, 3000);
             }
           } else {
@@ -595,7 +595,7 @@ var startSong = function() {
               });
             talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
             setTimeout(function() {
-              startSong(); //try again with SAME DJ
+              startSong(true); //try again with SAME DJ
             }, 3000);
           }
         });
@@ -604,7 +604,7 @@ var startSong = function() {
     } else {
       console.log("no songs in queue... remove this DJ");
       removePerson(theDJ.id);
-      nextSong();
+      nextSong(true);
       console.log("ok?")
     }
   });
