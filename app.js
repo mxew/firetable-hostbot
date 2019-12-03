@@ -953,7 +953,7 @@ var adam = {
           console.log(adm);
           if (adm){
             if (adm.artist) song.artist = adm.artist;
-            if (adm.title) song.title = adm.title;
+            if (adm.track_name) song.title = adm.track_name;
             if (adm.track_id) song.adamid = adm.track_id;
           }
         } catch (e){
