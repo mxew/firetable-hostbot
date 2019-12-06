@@ -1,4 +1,4 @@
-{
+{{
     "rules": {
         ".write": false,
         ".read": false,
@@ -6,7 +6,8 @@
             ".read": true,
             "$comment": {
                 ".read": true,
-                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))"
+                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))",
+                ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240"
             }
         },
         "thescreen":{
@@ -17,7 +18,7 @@
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
-        "playHistory": {
+        "songHistory": {
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
