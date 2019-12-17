@@ -214,6 +214,26 @@ var firelevel = {
   }
 };
 
+var ytVideoCheck = function(result){
+  var isBroken = false;
+  if (result.items[0].contentDetails){
+    if (result.items[0].contentDetails.regionRestriction){
+      if (result.items[0].contentDetails.regionRestriction.blocked){
+        if (result.items[0].contentDetails.regionRestriction.blocked.length){
+          //there's some BLOCKED guys
+          if (result.items[0].contentDetails.regionRestriction.blocked.includes("US")){
+            //blocked in US.... SKIP!
+            isBroken = true;
+          } else {
+            //not blocked in US...
+          }
+        }
+      }
+    }
+  }
+  return isBroken;
+};
+
 var updateThings = function() {
   updateTable();
   updateWaitlist();
@@ -359,7 +379,21 @@ var startSong = function(noPrevPlay) {
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
+            } else if (ytVideoCheck(result)) {
+              var removeThis = queueRef.child(nextSongkey);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v="+data[nextSongkey].cid+" is blocked in the US. Letting you play whatever is next in your queue instead.");
+              setTimeout(function() {
+                startSong(true); //try again with SAME DJ
+              }, 3000);
             } else {
+
               var input = result.items[0].contentDetails.duration;
               var s2p = firebase.database().ref("songToPlay");
               var yargo = data[nextSongkey].name.split(" - ");
