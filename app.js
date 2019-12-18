@@ -23,7 +23,7 @@ var playlimit = 2;
 ignoreChats = true;
 var song = {};
 var playDex = 0; //where does the spotlight go? (tracks SEATS not people)
-
+var theme = null;
 var songTimeout = null;
 var adam_last = null;
 var songtimer = null;
@@ -644,6 +644,53 @@ var startSong = function(noPrevPlay) {
   });
 };
 
+var themevote = {
+    active: false,
+    params: null,
+    go: function(txt, name) {
+        themevote.active = true;
+        var requiredVotes = 4;
+        talk("@everyone " + name + " wants to change the theme to '" + txt + "'. Needs " + requiredVotes + " vote(s) to change. Say 1 to vote yes.");
+        themevote.params = {
+            votes: {},
+            guy: name,
+            required: requiredVotes,
+            votingfor: txt
+        };
+        setTimeout(function() {
+            themevote.end();
+        }, 60 * 1000);
+    },
+    size: function(obj) {
+        var size = 0;
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) size++;
+        }
+        return size;
+    },
+    end: function() {
+        var votes = themevote.size(themevote.params.votes);
+
+        if (votes >= themevote.params.required) {
+            setTheme(themevote.params.votingfor);
+            talk(votes + " vote(s). The theme is now " + theme + "!");
+        } else if (theme) {
+            talk("Sorry. We're staying with " + theme + ".");
+        } else {
+            talk("Sorry. Not enough votes to set theme.");
+        }
+
+        themevote.params = null;
+        themevote.active = false;
+    }
+};
+
+var setTheme = function(themeIdea){
+  theme = themeIdea;
+  var ref = firebase.database().ref("theme");
+  ref.set(theme);
+};
+
 var removeMe = function(id) {
   for (var i = 0; i < queue.length; i++) {
     if (queue[i].id == id) {
@@ -739,6 +786,17 @@ ref2.on('value', function(dataSnapshot) {
     }
   }
 });
+
+var themepeek = firebase.database().ref("theme");
+themepeek.once("value").then(function(snapshot) {
+  var data = snapshot.val();
+  if (!data){
+    theme = null;
+  } else {
+    theme = data;
+  }
+});
+
 var ref = firebase.database().ref("chat");
 ref.on('child_added', function(childSnapshot, prevChildKey) {
   var chatData = childSnapshot.val();
@@ -793,6 +851,30 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
       } else if (command == "skip") {
         if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
           nextSong();
+        }
+      } else if (command == "theme") {
+        if (theme){
+          talk("The current theme is: "+theme);
+        } else {
+          talk("There is no theme at the moment. `!suggest` one if you'd like.")
+        }
+      } else if (command == "suggest") {
+        if (!themevote.active) {
+            themevote.go(args, namebo);
+        } else {
+            talk("We are already voting for " +themevote.params.votingfor + ". Let's wait for that to finish first.");
+        }
+      } else if (command == "settheme") {
+        if (users[chatData.id].supermod) {
+          if (args == "none") {
+              setTheme(null);
+              talk("There is no theme.");
+          } else {
+              setTheme(args);
+              talk("Theme has been set to: " + args);
+          }
+        } else {
+          talk("i will absolutely not do that "+namebo);
         }
       } else if (command == "upbot") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
@@ -947,6 +1029,8 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
       firelevel.hot(chatData.id, namebo);
     } else if (chatData.txt == "🌧" || chatData.txt == ":cloud_with_rain:") {
       firelevel.storm(chatData.id, namebo);
+    } else if (chatData.txt == "1" && themevote.active) {
+      themevote.params.votes[chatData.id] = 1;
     }
   }
 });
