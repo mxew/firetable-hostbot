@@ -1073,6 +1073,12 @@ var adam = {
             if (adm.artist) song.artist = adm.artist;
             if (adm.track_name) song.title = adm.track_name;
             if (adm.track_id) song.adamid = adm.track_id;
+            var tagUpdate = firebase.database().ref("tagUpdate");
+            var tagFixData = {
+              adamData: adm,
+              cid: song.cid
+            };
+            tagUpdate.set(tagFixData);
           }
         } catch (e){
           console.log(e);

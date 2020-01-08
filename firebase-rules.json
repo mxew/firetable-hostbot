@@ -18,6 +18,10 @@
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+      	"tagUpdate":{
+          ".read": true,
+          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
         "songToPlay": {
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
