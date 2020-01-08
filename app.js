@@ -1070,8 +1070,15 @@ var adam = {
 
           console.log(adm);
           if (adm){
-            if (adm.artist) song.artist = adm.artist;
-            if (adm.track_name) song.title = adm.track_name;
+            if (adm.track_name){
+              //if no track name, adam tags bad... dont use.
+              if (adm.artist) song.artist = adm.artist;
+              if (adm.track_name) song.title = adm.track_name;
+            } else {
+              //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
+              adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+            }
+
             if (adm.track_id) song.adamid = adm.track_id;
             var tagUpdate = firebase.database().ref("tagUpdate");
             var tagFixData = {
@@ -1085,6 +1092,42 @@ var adam = {
         }
       }
     });
+  },
+  fix_tags: function(adamid, args){
+    var song_data = args.split(' - ')
+    if (song_data.length < 2) {
+        //bad format
+    } else {
+      var artist0 = song_data[0].replace(/&amp;/g, '&');
+      var title0 = song_data[1].replace(/&amp;/g, '&');
+
+      var adam_data = {
+        data: {
+          artist: artist0,
+          title: title0,
+          track_id: adamid
+        }
+      };
+      var options = {
+        method: "POST",
+        url: "https://adam-indie-discotheque.herokuapp.com//fix_tags",
+        headers: {
+          "Content-Type": "text/html;charset=utf-8"
+        },
+        form: adam_data
+      };
+
+      request(options, function(err1, res1, body1) {
+        if (err1) console.log(err1);
+        console.log(body1);
+        if (body1) {
+          var adm = JSON.parse(body1);
+          console.log("good tag fix");
+        }
+      });
+
+
+    }
   }
 };
 
