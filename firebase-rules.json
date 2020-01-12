@@ -6,7 +6,7 @@
             ".read": true,
             "$comment": {
                 ".read": true,
-                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))",
+                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true)",
                 ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240"
             }
         },
@@ -35,17 +35,17 @@
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
         "queues": {
-            ".read": false,
+            ".read": true,
             "$uid": {
-                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
             }
         },
         "playlists": {
             ".read": false,
             "$uid": {
-                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
             }
         },
         "table": {
@@ -57,7 +57,7 @@
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
         "playdex": {
-            ".read": true,
+           ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
 
@@ -65,11 +65,21 @@
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+        "banned": {
+            ".read": "root.child('users/' + auth.uid + '/supermod').val() == true || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+            "$uid": {
+								".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || root.child('users/' + auth.uid + '/supermod').val() == true",
+                ".validate": "(root.child('users/' + $uid + '/supermod').val() != true) && ($uid != 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+
+            }
+        },
         "users": {
             ".read": true,
             "$uid": {
                 "status": {
-                    ".write": "auth.uid == $uid"
+                    ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
                 },
                 "mod": {
                     ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
@@ -78,7 +88,7 @@
                     ".write": "false"
                 },
                 "selectedList": {
-                  	".write": "auth.uid == $uid"
+                  	".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true"
                 },
                 "username": {
             				".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
