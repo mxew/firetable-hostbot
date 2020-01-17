@@ -1004,6 +1004,8 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             talk("Someone has that name already.");
           } else if (!isAlphaNumeric(args)) {
             talk("That is an INVALID NAME!");
+          } else if (args.length > 20){
+            talk("Name too long!");
           } else {
             var uref = firebase.database().ref("users/" + chatData.id + "/username");
             uref.set(args);
