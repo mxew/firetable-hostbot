@@ -961,6 +961,12 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         } else {
           talk("i will absolutely not do that "+namebo);
         }
+      } else if (command == "giftcard") {
+        if (chatData.card && theDJ){
+            var ccref = firebase.database().ref("cards/"+chatData.card+"/owner");
+            ccref.set(theDJ.id);
+            talk(":white_check_mark: Card has been transfered from "+namebo+" to @"+theDJ.name);
+        }
       } else if (command == "grab") {
         if (cardForGrabs) giveCard(chatData.id, namebo);
       } else if (command == "upbot") {
