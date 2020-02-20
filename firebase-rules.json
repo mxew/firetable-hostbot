@@ -18,6 +18,15 @@
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+        "cards":{
+          ".read": true,
+          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+          ".indexOn": ["owner"]
+        },
+        "cardCount":{
+          ".read": true,
+          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
       	"tagUpdate":{
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
@@ -85,6 +94,9 @@
                     ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
                 },
                 "supermod": {
+                    ".write": "false"
+                },
+                "hostbot": {
                     ".write": "false"
                 },
                 "selectedList": {

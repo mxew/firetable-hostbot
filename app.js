@@ -18,6 +18,13 @@ var queue = [];
 var removalPending = {};
 var queueRef = null;
 theDJ = null;
+var cardForGrabs = null;
+var totalCards = 0;
+var cardGen = false;
+var colors =  {
+    color: "#fff",
+    txt: "#fff"
+};
 var table = [];
 var playlimit = 2;
 ignoreChats = true;
@@ -122,13 +129,14 @@ var uidLookup = function(name) {
   return match;
 }
 
-var talk = function(txt) {
+var talk = function(txt, card) {
   var chat = firebase.database().ref("chat");
   var chooto = {
     time: firebase.database.ServerValue.TIMESTAMP,
     id: botid,
     txt: txt
   };
+  if (card) chooto.card = card;
   chat.push(chooto);
 };
 
@@ -323,6 +331,7 @@ var startSong = function(noPrevPlay) {
       txt: textcol
     };
     colref.set(thecolors);
+    colors = thecolors;
     updateThings();
     return false;
   };
@@ -457,6 +466,7 @@ var startSong = function(noPrevPlay) {
                   txt: textcol
                 };
                 colref.set(clrs1);
+                colors = clrs1;
               } else {
                 Vibrant.from(songInfo.image).getPalette(function(err, palette) {
                   console.log(palette);
@@ -469,6 +479,7 @@ var startSong = function(noPrevPlay) {
                     txt: textcol
                   };
                   colref.set(thecolors);
+                  colors = thecolors;
                 });
               }
               song = songInfo;
@@ -560,6 +571,7 @@ var startSong = function(noPrevPlay) {
                   txt: textcol
                 };
                 colref.set(clrs1);
+                colors = clrs1;
               } else {
                 Vibrant.from(songInfo.image).getPalette(function(err, palette) {
                   console.log(palette);
@@ -572,6 +584,7 @@ var startSong = function(noPrevPlay) {
                     txt: textcol
                   };
                   colref.set(thecolors);
+                  colors = thecolors;
                 });
               }
               song = songInfo;
@@ -642,6 +655,72 @@ var startSong = function(noPrevPlay) {
       console.log("ok?")
     }
   });
+};
+
+var printCard = function(userid){
+  if (cardGen) return;
+  cardGen = userid;
+  var now = Date.now();
+  var cardCount = firebase.database().ref("cardCount");
+  cardCount.once("value").then(function(snapshot) {
+    var cdata = snapshot.val();
+    if (!cdata){
+      //no cards yet
+      totalCards = 1;
+      cardCount.set(1);
+    } else {
+      totalCards = cdata + 1;
+      cardCount.set(totalCards);
+    }
+    var thenum = Math.floor(Math.random() * 9) + 1;
+    var tempWeighter = Math.floor(Math.random() * 100) + 1;
+    var max;
+    var min;
+    if (tempWeighter <= 75){
+      max = 130;
+      min = 110;
+    } else if (tempWeighter <= 95){
+      max = 230;
+      min = 131;
+    } else {
+      min = 231;
+      max = 420;
+    }
+    var thetemp = Math.floor(Math.random() * (max - min) ) + min;
+    var cardData = {
+      djname: theDJ.name,
+      djid: theDJ.id,
+      cid: song.cid,
+      num: thenum,
+      temp: thetemp,
+      colors: colors,
+      cardnum: totalCards,
+      title: song.title,
+      artist: song.artist,
+      image: song.image,
+      date: now,
+      special: false,
+      owner: false
+    };
+
+    var ref = firebase.database().ref("cards");
+    var cuteCard = ref.push(cardData, function() {
+      cardForGrabs = cuteCard.key;
+      talk("A new trading card has been printed. Type !grab to grab it for yourself!");
+    });
+  });
+
+
+
+};
+
+var giveCard = function(id, name){
+  if (!cardForGrabs) return;
+  var cardid = cardForGrabs;
+  cardForGrabs = null;
+  var ref = firebase.database().ref("cards/"+cardid+"/owner");
+  ref.set(id);
+  talk("good job @"+name+" you got the card.", cardid);
 };
 
 var themevote = {
@@ -876,6 +955,14 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         } else {
           talk("i will absolutely not do that "+namebo);
         }
+      } else if (command == "printcard") {
+        if (users[chatData.id].supermod) {
+          printCard();
+        } else {
+          talk("i will absolutely not do that "+namebo);
+        }
+      } else if (command == "grab") {
+        if (cardForGrabs) giveCard(chatData.id, namebo);
       } else if (command == "upbot") {
         if (users[chatData.id].mod || users[chatData.id].supermod) {
           var namebo2 = botid;
