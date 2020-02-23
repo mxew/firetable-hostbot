@@ -130,11 +130,16 @@ var uidLookup = function(name) {
 }
 
 var talk = function(txt, card) {
+  var namebo2 = botid;
+  if (users[botid]) {
+    if (users[botid].username) namebo2 = users[botid].username;
+  }
   var chat = firebase.database().ref("chat");
   var chooto = {
     time: firebase.database.ServerValue.TIMESTAMP,
     id: botid,
-    txt: txt
+    txt: txt,
+    name: namebo2
   };
   if (card) chooto.card = card;
   chat.push(chooto);

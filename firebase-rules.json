@@ -7,7 +7,13 @@
             "$comment": {
                 ".read": true,
                 ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true)",
-                ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240"
+                ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
+                  "card":{
+                      ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+                  },
+                  "name":{
+                      ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
+                  }
             }
         },
         "thescreen":{
@@ -86,6 +92,7 @@
         },
         "users": {
             ".read": true,
+            ".indexOn": ["status", "username"],
             "$uid": {
                 "status": {
                     ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
