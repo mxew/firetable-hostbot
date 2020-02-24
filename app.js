@@ -1,15 +1,14 @@
+require('dotenv').config({ silent: process.env.NODE_ENV === 'production' });
 var request = require('request');
-
 var firebase = require('firebase');
 var YouTube = require('youtube-node');
 var Vibrant = require('node-vibrant');
 var youTube = new YouTube();
 var SC = require('node-soundcloud')
 
-var config = require('./config');
-youTube.setKey(config.youtube.key);
+youTube.setKey(process.env.YOUTUBE_KEY);
 SC.init({
-  id: config.soundcloud.key,
+  id: process.env.SOUNDCLOUD_KEY,
 });
 var users = {};
 var botid = null;
@@ -36,13 +35,13 @@ var adam_last = null;
 var songtimer = null;
 
 var configs = {
-  apiKey: config.firebase.key,
-  authDomain: config.firebase.auth,
-  databaseURL: config.firebase.db
+  apiKey: process.env.FIREBASE_KEY,
+  authDomain: process.env.FIREBASE_AUTH,
+  databaseURL: process.env.FIREBASE_DB
 };
 firebase.initializeApp(configs);
 
-firebase.auth().signInWithEmailAndPassword(config.firetable.username, config.firetable.password).catch(function(error) {
+firebase.auth().signInWithEmailAndPassword(process.env.FIRETABLE_USER, process.env.FIRETABLE_PASS).catch(function(error) {
   console.log(error);
 });
 
@@ -443,7 +442,7 @@ var startSong = function(noPrevPlay) {
                 sartist = "Unknown";
               }
               var adamString = sartist + " - " + stitle;
-              if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
+              if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(result.items[0].snippet.publishedAt);
               var postedDate = thedate.getTime();
               var now = Date.now();
@@ -547,7 +546,7 @@ var startSong = function(noPrevPlay) {
                 sartist = "Unknown";
               }
               var adamString = sartist + " - " + stitle;
-              if (config.adam.url) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
+              if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(tracks[0].created_at);
               var postedDate = thedate.getTime();
               var now = Date.now();
@@ -1137,7 +1136,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
 
 var adam = {
   np: function(song_name, dj, link, source){
-    if (!config.adam.url) return;
+    if (!process.env.ADAM_URL) return;
     var thesource = "youtube";
     if (source == 2){
       thesource = "soundcloud"
@@ -1153,7 +1152,7 @@ var adam = {
     // try posting to ADAM
     var options = {
       method: "POST",
-      url: config.adam.url + "/new_song",
+      url: process.env.ADAM_URL + "/new_song",
       headers: {
         "Content-Type": "text/html;charset=utf-8"
       },
@@ -1232,8 +1231,8 @@ var adam = {
 };
 
 var lastfm = {
-  sk: config.lastfm.sessionkey, //for last.fm user tt_discotheque
-  key: config.lastfm.apikey,
+  sk: process.env.LASTFM_SESSIONKEY, //for last.fm user tt_discotheque
+  key: process.env.LASTFM_APIKEY,
   songStart: null,
   duration: null,
   scrobble: function() {

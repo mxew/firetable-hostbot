@@ -4,6 +4,7 @@
   "description": "node.js 'chatbot' back end for firetable, a virtual music listening room powered by firebase.",
   "main": "app.js",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "firebase": "^3.6.7",
     "node-soundcloud": "0.0.6",
     "node-vibrant": "^3.0.0",
