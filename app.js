@@ -41,14 +41,10 @@ var configs = {
 };
 firebase.initializeApp(configs);
 
-firebase.auth().signInWithEmailAndPassword(process.env.FIRETABLE_USER, process.env.FIRETABLE_PASS).catch(function(error) {
-  console.log(error);
-});
-
 firebase.auth().onAuthStateChanged(function(user) {
   if (user) {
-    console.log(user.uid);
     botid = user.uid;
+    console.log(botid);
     var ref0 = firebase.database().ref("users/" + user.uid + "/status");
     ref0.set(true);
     ref0.onDisconnect().set(false);
@@ -1603,3 +1599,7 @@ var serialize = function(obj, prefix) {
   }
   return str.join("&");
 }
+
+firebase.auth().signInWithEmailAndPassword(process.env.FIRETABLE_USER, process.env.FIRETABLE_PASS).catch(function(error) {
+  console.log(error);
+});
