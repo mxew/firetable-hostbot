@@ -12,7 +12,7 @@ pairs with a client side front end ([firetable-user](https://github.com/mxew/fir
 ## dependencies
 - node.js
 - dotenv ^8.2.0
-- firebase ^3.6.7
-- youtube-node ^1.3.0
+- firebase ^7.9.1
+- youtube-node ^1.3.3
 - node-soundcloud 0.0.6
 - node-vibrant ^3.0.0
