@@ -86,16 +86,18 @@ firebase.auth().onAuthStateChanged(function(user) {
               song = data;
               theDJ = table[playDex];
               console.log(queue);
-              var timeSince = nownow - data.started;
-              var secSince = Math.floor(timeSince / 1000);
-              var timeLeft = data.duration - secSince;
-              if (timeLeft <= 0) {
-                nextSong();
-              } else {
-                songTimeout = setTimeout(function() {
-                  songTimeout = null;
-                  nextSong(); //NEEEEEEXT
-                }, timeLeft * 1000);
+              if (data){
+                var timeSince = nownow - data.started;
+                var secSince = Math.floor(timeSince / 1000);
+                var timeLeft = data.duration - secSince;
+                if (timeLeft <= 0) {
+                  nextSong();
+                } else {
+                  songTimeout = setTimeout(function() {
+                    songTimeout = null;
+                    nextSong(); //NEEEEEEXT
+                  }, timeLeft * 1000);
+                }
               }
               updateThings();
               started = true;
@@ -431,7 +433,7 @@ var startSong = function(noPrevPlay) {
               }
               songtimer = setTimeout(function() {
                 songtimer = null;
-                 lastfm.scrobble();
+                 if (lastfm.key) lastfm.scrobble();
               }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
@@ -484,7 +486,7 @@ var startSong = function(noPrevPlay) {
               }
               song = songInfo;
               s2p.set(songInfo);
-              lastfm.nowPlaying();
+              if (lastfm.key) lastfm.nowPlaying();
 
               var removeThis = queueRef.child(song.key);
               removeThis.remove()
@@ -530,7 +532,7 @@ var startSong = function(noPrevPlay) {
               }
               songtimer = setTimeout(function() {
                 songtimer = null;
-                 lastfm.scrobble();
+                 if (lastfm.key) lastfm.scrobble();
               }, (totalseconds * 1000) - 3000);
               var s2p = firebase.database().ref("songToPlay");
               var yargo = data[nextSongkey].name.split(" - ");
@@ -589,7 +591,7 @@ var startSong = function(noPrevPlay) {
               }
               song = songInfo;
               s2p.set(songInfo);
-              lastfm.nowPlaying();
+              if (lastfm.key) lastfm.nowPlaying();
 
               var removeThis = queueRef.child(song.key);
               removeThis.remove()
@@ -889,6 +891,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
     if (matches && botid !== chatData.id && started) {
       var command = matches[1].toLowerCase();
       var args = matches[2];
+      console.log("COMMAND:",command);
       if (command == "addme") {
         var check = addCheck(chatData.id);
         if (!check) {
