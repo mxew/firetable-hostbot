@@ -460,6 +460,7 @@ var startSong = function(noPrevPlay) {
               };
               var clrs = "#fff";
               var textcol = "#fff";
+              var moreColors = {};
               var colref = firebase.database().ref("colors");
               if (!songInfo.image) {
                 songInfo.image = "img/idlogo.png";
@@ -476,9 +477,41 @@ var startSong = function(noPrevPlay) {
                     clrs = palette.Vibrant.getHex();
                     textcol = palette.Vibrant.getBodyTextColor();
                   }
+                  if (palette.LightVibrant) {
+                    moreColors.lightVibrant = {
+                      color: palette.LightVibrant.getHex(),
+                      txt: palette.LightVibrant.getBodyTextColor()
+                    };
+                  }
+                  if (palette.DarkVibrant) {
+                    moreColors.darkVibrant = {
+                      color: palette.DarkVibrant.getHex(),
+                      txt: palette.DarkVibrant.getBodyTextColor()
+                    };
+                  }
+                  if (palette.Muted) {
+                    moreColors.muted = {
+                      color: palette.Muted.getHex(),
+                      txt: palette.Muted.getBodyTextColor()
+                    };
+                  }
+                  if (palette.LightMuted) {
+                    moreColors.lightMuted = {
+                      color: palette.LightMuted.getHex(),
+                      txt: palette.LightMuted.getBodyTextColor()
+                    };
+                  }
+                  if (palette.DarkMuted) {
+                    moreColors.darkMuted = {
+                      color: palette.DarkMuted.getHex(),
+                      txt: palette.DarkMuted.getBodyTextColor()
+                    };
+                  }
+
                   var thecolors = {
                     color: clrs,
-                    txt: textcol
+                    txt: textcol,
+                    altColors: moreColors
                   };
                   colref.set(thecolors);
                   colors = thecolors;
@@ -565,6 +598,7 @@ var startSong = function(noPrevPlay) {
               var colref = firebase.database().ref("colors");
               var clrs = "#fff";
               var textcol = "#fff";
+              var moreColors = {};
               var colref = firebase.database().ref("colors");
               if (!songInfo.image) {
                 songInfo.image = "img/idlogo.png";
@@ -581,9 +615,40 @@ var startSong = function(noPrevPlay) {
                     clrs = palette.Vibrant.getHex();
                     textcol = palette.Vibrant.getBodyTextColor();
                   }
+                  if (palette.LightVibrant) {
+                    moreColors.lightVibrant = {
+                      color: palette.LightVibrant.getHex(),
+                      txt: palette.LightVibrant.getBodyTextColor()
+                    };
+                  }
+                  if (palette.DarkVibrant) {
+                    moreColors.darkVibrant = {
+                      color: palette.DarkVibrant.getHex(),
+                      txt: palette.DarkVibrant.getBodyTextColor()
+                    };
+                  }
+                  if (palette.Muted) {
+                    moreColors.muted = {
+                      color: palette.Muted.getHex(),
+                      txt: palette.Muted.getBodyTextColor()
+                    };
+                  }
+                  if (palette.LightMuted) {
+                    moreColors.lightMuted = {
+                      color: palette.LightMuted.getHex(),
+                      txt: palette.LightMuted.getBodyTextColor()
+                    };
+                  }
+                  if (palette.DarkMuted) {
+                    moreColors.darkMuted = {
+                      color: palette.DarkMuted.getHex(),
+                      txt: palette.DarkMuted.getBodyTextColor()
+                    };
+                  }
                   var thecolors = {
                     color: clrs,
-                    txt: textcol
+                    txt: textcol,
+                    altColors: moreColors
                   };
                   colref.set(thecolors);
                   colors = thecolors;
