@@ -543,6 +543,8 @@ var startSong = function(noPrevPlay) {
               }
               songTimeout = setTimeout(function() {
                 songTimeout = null;
+                var danceref = firebase.database().ref("dance");
+                danceref.set(false);
                 nextSong(); //NEEEEEEXT
               }, totalseconds * 1000);
             }
@@ -1187,6 +1189,9 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             talk("Nothing is playing...");
           }
         }
+      } else if (command == "dance") {
+        var danceref = firebase.database().ref("dance");
+        danceref.set(true);
       }
     } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
       firelevel.hot(chatData.id, namebo);
