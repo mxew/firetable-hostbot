@@ -24,6 +24,8 @@ var colors =  {
     color: "#fff",
     txt: "#fff"
 };
+var robotsDancing = false;
+var cardGiftedThisSong = false;
 var table = [];
 var playlimit = 2;
 ignoreChats = true;
@@ -271,6 +273,10 @@ var nextSong = function(noPrevPlay) {
 var startSong = function(noPrevPlay) {
   console.log(table.length);
   firelevel.clear();
+  var danceref = firebase.database().ref("dance");
+  danceref.set(false);
+  robotsDancing = false;
+  cardGiftedThisSong = false;
   if (song && !noPrevPlay){
     if (song.cid != 0){
       var recentz = firebase.database().ref("songHistory");
@@ -543,8 +549,6 @@ var startSong = function(noPrevPlay) {
               }
               songTimeout = setTimeout(function() {
                 songTimeout = null;
-                var danceref = firebase.database().ref("dance");
-                danceref.set(false);
                 nextSong(); //NEEEEEEXT
               }, totalseconds * 1000);
             }
@@ -1036,6 +1040,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             var ccref = firebase.database().ref("cards/"+chatData.card+"/owner");
             ccref.set(theDJ.id);
             talk(":white_check_mark: Card has been transfered from "+namebo+" to @"+theDJ.name);
+            if (chatData.id !== theDJ.id) cardGiftedThisSong = true;
         }
       } else if (command == "grab") {
         if (cardForGrabs) giveCard(chatData.id, namebo);
@@ -1190,8 +1195,18 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           }
         }
       } else if (command == "dance") {
-        var danceref = firebase.database().ref("dance");
-        danceref.set(true);
+        if (cardGiftedThisSong){
+          if (!robotsDancing){
+            var danceref = firebase.database().ref("dance");
+            danceref.set(true);
+            robotsDancing = true;
+            talk(":artificial_satellite: D.A.N.C.E satellite: `GLOBAL DANCE SEQUENCE NO. 1 HAS BEEN INITIATED.`");
+          } else {
+            talk(":artificial_satellite: D.A.N.C.E satellite: `already broadcasting dance signal thanks`");
+          }
+        } else {
+          talk(":red_circle::satellite: unable to communicate with the D.A.N.C.E. satellite... if you gift the DJ a h0t new card, i'm sure they'll help boost your signal");
+        }
       }
     } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
       firelevel.hot(chatData.id, namebo);

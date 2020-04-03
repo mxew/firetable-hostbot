@@ -20,6 +20,10 @@
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+        "dance":{
+          ".read": true,
+          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
         "theme":{
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
