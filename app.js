@@ -362,8 +362,17 @@ var startSong = function(noPrevPlay) {
 
   queueRef.once("value").then(function(snapshot) {
     var data = snapshot.val();
-    if (data) {
-      var nextSongkey = Object.keys(data)[0];
+    var goodTrack = null;
+    for (var key in data){
+      if (data[key]){
+        if (!data[key].flagged){
+           goodTrack = key;
+           break;
+        }
+      }
+    }
+    if (goodTrack) {
+      var nextSongkey = goodTrack;
       if (data[nextSongkey].type == 1) {
         youTube.getById(data[nextSongkey].cid, function(error, result) {
           if (error || !result.items) {
@@ -373,11 +382,21 @@ var startSong = function(noPrevPlay) {
             removeThis.remove()
               .then(function() {
                 console.log("song remove went great.");
+                var songBack = {
+                  cid: data[nextSongkey].cid,
+                  name: data[nextSongkey].name,
+                  type: data[nextSongkey].type,
+                  flagged: {
+                    date: Date.now(),
+                    code: 1
+                  }
+                };
+                queueRef.push(songBack);
               })
               .catch(function(error) {
                 console.log("Song Remove failed: " + error.message);
               });
-            talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
             setTimeout(function() {
               startSong(true); //try again with SAME DJ
             }, 3000);
@@ -388,11 +407,21 @@ var startSong = function(noPrevPlay) {
               removeThis.remove()
                 .then(function() {
                   console.log("song remove went great.");
+                  var songBack = {
+                    cid: data[nextSongkey].cid,
+                    name: data[nextSongkey].name,
+                    type: data[nextSongkey].type,
+                    flagged: {
+                      date: Date.now(),
+                      code: 2
+                    }
+                  };
+                  queueRef.push(songBack);
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -401,6 +430,16 @@ var startSong = function(noPrevPlay) {
               removeThis.remove()
                 .then(function() {
                   console.log("song remove went great.");
+                  var songBack = {
+                    cid: data[nextSongkey].cid,
+                    name: data[nextSongkey].name,
+                    type: data[nextSongkey].type,
+                    flagged: {
+                      date: Date.now(),
+                      code: 3
+                    }
+                  };
+                  queueRef.push(songBack);
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
@@ -694,11 +733,21 @@ var startSong = function(noPrevPlay) {
               removeThis.remove()
                 .then(function() {
                   console.log("song remove went great.");
+                  var songBack = {
+                    cid: data[nextSongkey].cid,
+                    name: data[nextSongkey].name,
+                    type: data[nextSongkey].type,
+                    flagged: {
+                      date: Date.now(),
+                      code: 4
+                    }
+                  };
+                  queueRef.push(songBack);
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -709,11 +758,21 @@ var startSong = function(noPrevPlay) {
             removeThis.remove()
               .then(function() {
                 console.log("song remove went great.");
+                var songBack = {
+                  cid: data[nextSongkey].cid,
+                  name: data[nextSongkey].name,
+                  type: data[nextSongkey].type,
+                  flagged: {
+                    date: Date.now(),
+                    code: 5
+                  }
+                };
+                queueRef.push(songBack);
               })
               .catch(function(error) {
                 console.log("Song Remove failed: " + error.message);
               });
-            talk("@" + theDJ.name + " you tried to play a broken song, so I deleted it from your queue. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
             setTimeout(function() {
               startSong(true); //try again with SAME DJ
             }, 3000);
