@@ -101,6 +101,10 @@
                 "status": {
                     ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
                 },
+                "joined": {
+                  	".write": "auth.uid == $uid",
+                  	".validate": "newData.val() == now && !data.exists()",
+                },
                 "mod": {
                     ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
                 },
