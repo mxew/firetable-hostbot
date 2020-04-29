@@ -1224,21 +1224,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           }
         }
       } else if (command == "become") {
-        if (args) {
-          //SO YOU WANNA CHANGE YOUR NAME HUH?
-          var testName = uidLookup(args);
-          if (testName) {
-            talk("Someone has that name already.");
-          } else if (!isAlphaNumeric(args)) {
-            talk("That is an INVALID NAME!");
-          } else if (args.length > 20){
-            talk("Name too long!");
-          } else {
-            var uref = firebase.database().ref("users/" + chatData.id + "/username");
-            uref.set(args);
-            talk("Ok! Welcome to being " + args + " now.");
-          }
-        }
+        talk("i do not remember how to do that.")
       } else if (command == "wait") {
         talk("wait");
       } else if (command == "hot") {
