@@ -16,6 +16,12 @@
                   }
             }
         },
+        "nameClaim" :{
+          "$uname":{
+            ".write": "(auth.uid != null && (newData.val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' && root.child('banned/' + auth.uid).val() != true)",
+						".validate": "(!data.exists() || root.child('users/' + data.val() + '/username').val() !== $uname) && $uname.matches(/^[0-9a-zA-Z_]{1,22}$/)"
+          }
+        },
         "thescreen":{
           ".read": true,
           ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
@@ -118,7 +124,8 @@
                   	".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true"
                 },
                 "username": {
-            				".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+                  	".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true",
+                    ".validate": "(root.child('nameClaim/' + newData.val() ).val() == auth.uid)"
                 }
             }
         }
