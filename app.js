@@ -304,6 +304,7 @@ var startSong = function(noPrevPlay) {
         type: song.type,
         url: song.url,
         cid: song.cid,
+        colors: colors,
         when: song.started,
         postedDate: song.postedDate,
         img: song.image
