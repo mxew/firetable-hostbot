@@ -55,6 +55,10 @@
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
         },
+        "newMusic": {
+            ".read": true,
+            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+        },
         "colors": {
             ".read": true,
             ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"

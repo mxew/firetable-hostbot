@@ -1,4 +1,6 @@
-require('dotenv').config({ silent: process.env.NODE_ENV === 'production' });
+require('dotenv').config({
+  silent: process.env.NODE_ENV === 'production'
+});
 var request = require('request');
 var firebase = require('firebase');
 var YouTube = require('youtube-node');
@@ -20,9 +22,9 @@ theDJ = null;
 var cardForGrabs = null;
 var totalCards = 0;
 var cardGen = false;
-var colors =  {
-    color: "#fff",
-    txt: "#fff"
+var colors = {
+  color: "#fff",
+  txt: "#fff"
 };
 var robotsDancing = false;
 var cardGiftedThisSong = false;
@@ -88,7 +90,7 @@ firebase.auth().onAuthStateChanged(function(user) {
               song = data;
               theDJ = table[playDex];
               console.log(queue);
-              if (data){
+              if (data) {
                 var timeSince = nownow - data.started;
                 var secSince = Math.floor(timeSince / 1000);
                 var timeLeft = data.duration - secSince;
@@ -176,14 +178,14 @@ var firelevel = {
     var storms = firelevel.size(firelevel.storms);
     var level = fires - storms;
     console.log(level);
-    if (level <= 0){
-      talk(name+ " thinks this track is h0t... doesn't seem very hot...");
-    } else if (level == 1){
-      talk(name+ " thinks this track is h0t! A small fire has started.");
-    } else if (level <= 7){
-      talk(name+ " thinks this track is h0t! Fire is burnin' :chart_with_upwards_trend:");
+    if (level <= 0) {
+      talk(name + " thinks this track is h0t... doesn't seem very hot...");
+    } else if (level == 1) {
+      talk(name + " thinks this track is h0t! A small fire has started.");
+    } else if (level <= 7) {
+      talk(name + " thinks this track is h0t! Fire is burnin' :chart_with_upwards_trend:");
     } else {
-      talk(name+ " thinks this track is h0t! FIRE LEVEL IS OFF THE CHARTS. CHARTS ON FIRE!");
+      talk(name + " thinks this track is h0t! FIRE LEVEL IS OFF THE CHARTS. CHARTS ON FIRE!");
     }
   },
   storm: function(id, name) {
@@ -193,21 +195,21 @@ var firelevel = {
     var storms = firelevel.size(firelevel.storms);
     var level = fires - storms;
     console.log(level);
-    if (level >= 4){
-      talk(name+ " is trying to put out the DJ's fire... doesn't seem to matter...");
-    } else if (level >= 1){
-      talk(name+ " is trying to put out the DJ's fire... maybe this track isn't so hot afterall...");
-    } else if (level == 0){
-      talk("fire is out. thanks "+ name);
-    } else if (level == -1){
-      talk("this track has caused a storm to form around "+name+". hard to start a fire with all this rain...");
-    } else if (level >= -5){
-      talk("the storm has expanded with the help of "+name+". certainly not a h0t track.");
+    if (level >= 4) {
+      talk(name + " is trying to put out the DJ's fire... doesn't seem to matter...");
+    } else if (level >= 1) {
+      talk(name + " is trying to put out the DJ's fire... maybe this track isn't so hot afterall...");
+    } else if (level == 0) {
+      talk("fire is out. thanks " + name);
+    } else if (level == -1) {
+      talk("this track has caused a storm to form around " + name + ". hard to start a fire with all this rain...");
+    } else if (level >= -5) {
+      talk("the storm has expanded with the help of " + name + ". certainly not a h0t track.");
     } else {
       talk(":rotating_light: :warning: SEVERE WEATHER ALERT. STAY FAR AWAY FROM THIS TRACK.");
     }
   },
-  clear: function(){
+  clear: function() {
     firelevel.fires = {};
     firelevel.storms = {};
   },
@@ -216,8 +218,8 @@ var firelevel = {
   size: function(obj) {
     var size = 0;
     for (var key in obj) {
-      if (obj.hasOwnProperty(key)){
-        if (obj[key]){
+      if (obj.hasOwnProperty(key)) {
+        if (obj[key]) {
           size++;
         }
       }
@@ -226,14 +228,14 @@ var firelevel = {
   }
 };
 
-var ytVideoCheck = function(result){
+var ytVideoCheck = function(result) {
   var isBroken = false;
-  if (result.items[0].contentDetails){
-    if (result.items[0].contentDetails.regionRestriction){
-      if (result.items[0].contentDetails.regionRestriction.blocked){
-        if (result.items[0].contentDetails.regionRestriction.blocked.length){
+  if (result.items[0].contentDetails) {
+    if (result.items[0].contentDetails.regionRestriction) {
+      if (result.items[0].contentDetails.regionRestriction.blocked) {
+        if (result.items[0].contentDetails.regionRestriction.blocked.length) {
           //there's some BLOCKED guys
-          if (result.items[0].contentDetails.regionRestriction.blocked.includes("US")){
+          if (result.items[0].contentDetails.regionRestriction.blocked.includes("US")) {
             //blocked in US.... SKIP!
             isBroken = true;
           } else {
@@ -244,6 +246,21 @@ var ytVideoCheck = function(result){
     }
   }
   return isBroken;
+};
+
+var newMusicCheck = function(data) {
+  var daysAgo;
+  var isNew = false;
+  var playcount = 0;
+  if (data.playcount) playcount = data.playcount;
+  if (data) {
+    var dif = Date.now() - data.postedDate;
+    daysAgo = Math.floor(dif / 1000 / 60 / 60 / 24);
+    if (daysAgo <= 30 && !playcount) {
+      isNew = true;
+    }
+  }
+  return isNew;
 };
 
 var updateThings = function() {
@@ -277,38 +294,60 @@ var startSong = function(noPrevPlay) {
   danceref.set(false);
   robotsDancing = false;
   cardGiftedThisSong = false;
-  if (song && !noPrevPlay){
-    if (song.cid != 0){
-      var recentz = firebase.database().ref("songHistory");
+  if (song && !noPrevPlay) {
+    if (song.cid != 0) {
       var newEntry = {
-            artist: song.artist,
-            title: song.title,
-            dj: theDJ.name,
-            djid: theDJ.id,
-            type: song.type,
-            url: song.url,
-            cid: song.cid,
-            when: song.started,
-            postedDate: song.postedDate,
-            img: song.image
-        };
+        artist: song.artist,
+        title: song.title,
+        dj: theDJ.name,
+        djid: theDJ.id,
+        type: song.type,
+        url: song.url,
+        cid: song.cid,
+        when: song.started,
+        postedDate: song.postedDate,
+        img: song.image
+      };
       if (song.adamid) newEntry.adamid = song.adamid;
+      if (song.playcount) newEntry.playcount = song.playcount;
+      var recentz = firebase.database().ref("songHistory");
       recentz.push(newEntry);
       recentz.once("value", function(snapshot) {
-          var rdata = snapshot.val();
-          var allRecents = [];
-          for (var okey in rdata){
-              if (rdata.hasOwnProperty(okey)){
-                allRecents.push(okey);
-              }
+        var rdata = snapshot.val();
+        var allRecents = [];
+        for (var okey in rdata) {
+          if (rdata.hasOwnProperty(okey)) {
+            allRecents.push(okey);
           }
-          if (allRecents.length > 50){
-              var shave = allRecents.length - 50;
-              for (var ayy = 0; ayy < shave; ayy++){
-                recentz.child(allRecents[ayy]).remove();
-              }
+        }
+        if (allRecents.length > 50) {
+          var shave = allRecents.length - 50;
+          for (var ayy = 0; ayy < shave; ayy++) {
+            recentz.child(allRecents[ayy]).remove();
           }
+        }
       });
+      var isNew = newMusicCheck(newEntry);
+      if (isNew) {
+        // NEW MUSIC
+        var newMusic = firebase.database().ref("newMusic");
+        newMusic.push(newEntry);
+        newMusic.once("value", function(snapshot) {
+          var rdata = snapshot.val();
+          var allNew = [];
+          for (var okey in rdata) {
+            if (rdata.hasOwnProperty(okey)) {
+              allNew.push(okey);
+            }
+          }
+          if (allNew.length > 100) {
+            var shave = allNew.length - 100;
+            for (var ayy = 0; ayy < shave; ayy++) {
+              newMusic.child(allNew[ayy]).remove();
+            }
+          }
+        });
+      }
     }
   }
   if (songtimer != null) {
@@ -363,11 +402,11 @@ var startSong = function(noPrevPlay) {
   queueRef.once("value").then(function(snapshot) {
     var data = snapshot.val();
     var goodTrack = null;
-    for (var key in data){
-      if (data[key]){
-        if (!data[key].flagged){
-           goodTrack = key;
-           break;
+    for (var key in data) {
+      if (data[key]) {
+        if (!data[key].flagged) {
+          goodTrack = key;
+          break;
         }
       }
     }
@@ -444,7 +483,7 @@ var startSong = function(noPrevPlay) {
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v="+data[nextSongkey].cid+" is blocked in the US. Letting you play whatever is next in your queue instead.");
+              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -478,7 +517,7 @@ var startSong = function(noPrevPlay) {
               }
               songtimer = setTimeout(function() {
                 songtimer = null;
-                 if (lastfm.key) lastfm.scrobble();
+                if (lastfm.key) lastfm.scrobble();
               }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
@@ -610,7 +649,7 @@ var startSong = function(noPrevPlay) {
               }
               songtimer = setTimeout(function() {
                 songtimer = null;
-                 if (lastfm.key) lastfm.scrobble();
+                if (lastfm.key) lastfm.scrobble();
               }, (totalseconds * 1000) - 3000);
               var s2p = firebase.database().ref("songToPlay");
               var yargo = data[nextSongkey].name.split(" - ");
@@ -789,14 +828,14 @@ var startSong = function(noPrevPlay) {
   });
 };
 
-var printCard = function(userid){
+var printCard = function(userid) {
   if (cardGen) return;
   cardGen = userid;
   var now = Date.now();
   var cardCount = firebase.database().ref("cardCount");
   cardCount.once("value").then(function(snapshot) {
     var cdata = snapshot.val();
-    if (!cdata){
+    if (!cdata) {
       //no cards yet
       totalCards = 1;
       cardCount.set(1);
@@ -808,17 +847,17 @@ var printCard = function(userid){
     var tempWeighter = Math.floor(Math.random() * 100) + 1;
     var max;
     var min;
-    if (tempWeighter <= 75){
+    if (tempWeighter <= 75) {
       max = 130;
       min = 110;
-    } else if (tempWeighter <= 95){
+    } else if (tempWeighter <= 95) {
       max = 230;
       min = 131;
     } else {
       min = 231;
       max = 420;
     }
-    var thetemp = Math.floor(Math.random() * (max - min) ) + min;
+    var thetemp = Math.floor(Math.random() * (max - min)) + min;
     var cardData = {
       djname: theDJ.name,
       djid: theDJ.id,
@@ -846,57 +885,57 @@ var printCard = function(userid){
 
 };
 
-var giveCard = function(id, name){
+var giveCard = function(id, name) {
   if (!cardForGrabs) return;
   var cardid = cardForGrabs;
   cardForGrabs = null;
-  var ref = firebase.database().ref("cards/"+cardid+"/owner");
+  var ref = firebase.database().ref("cards/" + cardid + "/owner");
   ref.set(id);
-  talk("good job @"+name+" you got the card.", cardid);
+  talk("good job @" + name + " you got the card.", cardid);
 };
 
 var themevote = {
-    active: false,
-    params: null,
-    go: function(txt, name) {
-        themevote.active = true;
-        var requiredVotes = 4;
-        talk("@everyone " + name + " wants to change the theme to '" + txt + "'. Needs " + requiredVotes + " vote(s) to change. Say 1 to vote yes.");
-        themevote.params = {
-            votes: {},
-            guy: name,
-            required: requiredVotes,
-            votingfor: txt
-        };
-        setTimeout(function() {
-            themevote.end();
-        }, 60 * 1000);
-    },
-    size: function(obj) {
-        var size = 0;
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) size++;
-        }
-        return size;
-    },
-    end: function() {
-        var votes = themevote.size(themevote.params.votes);
-
-        if (votes >= themevote.params.required) {
-            setTheme(themevote.params.votingfor);
-            talk(votes + " vote(s). The theme is now " + theme + "!");
-        } else if (theme) {
-            talk("Sorry. We're staying with " + theme + ".");
-        } else {
-            talk("Sorry. Not enough votes to set theme.");
-        }
-
-        themevote.params = null;
-        themevote.active = false;
+  active: false,
+  params: null,
+  go: function(txt, name) {
+    themevote.active = true;
+    var requiredVotes = 4;
+    talk("@everyone " + name + " wants to change the theme to '" + txt + "'. Needs " + requiredVotes + " vote(s) to change. Say 1 to vote yes.");
+    themevote.params = {
+      votes: {},
+      guy: name,
+      required: requiredVotes,
+      votingfor: txt
+    };
+    setTimeout(function() {
+      themevote.end();
+    }, 60 * 1000);
+  },
+  size: function(obj) {
+    var size = 0;
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) size++;
     }
+    return size;
+  },
+  end: function() {
+    var votes = themevote.size(themevote.params.votes);
+
+    if (votes >= themevote.params.required) {
+      setTheme(themevote.params.votingfor);
+      talk(votes + " vote(s). The theme is now " + theme + "!");
+    } else if (theme) {
+      talk("Sorry. We're staying with " + theme + ".");
+    } else {
+      talk("Sorry. Not enough votes to set theme.");
+    }
+
+    themevote.params = null;
+    themevote.active = false;
+  }
 };
 
-var setTheme = function(themeIdea){
+var setTheme = function(themeIdea) {
   theme = themeIdea;
   var ref = firebase.database().ref("theme");
   ref.set(theme);
@@ -1001,7 +1040,7 @@ ref2.on('value', function(dataSnapshot) {
 var themepeek = firebase.database().ref("theme");
 themepeek.once("value").then(function(snapshot) {
   var data = snapshot.val();
-  if (!data){
+  if (!data) {
     theme = null;
   } else {
     theme = data;
@@ -1021,7 +1060,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
     if (matches && botid !== chatData.id && started) {
       var command = matches[1].toLowerCase();
       var args = matches[2];
-      console.log("COMMAND:",command);
+      console.log("COMMAND:", command);
       if (command == "addme") {
         var check = addCheck(chatData.id);
         if (!check) {
@@ -1065,41 +1104,41 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           nextSong();
         }
       } else if (command == "theme") {
-        if (theme){
-          talk("The current theme is: "+theme);
+        if (theme) {
+          talk("The current theme is: " + theme);
         } else {
           talk("There is no theme at the moment. `!suggest` one if you'd like.")
         }
       } else if (command == "suggest") {
         if (!themevote.active) {
-            themevote.go(args, namebo);
+          themevote.go(args, namebo);
         } else {
-            talk("We are already voting for " +themevote.params.votingfor + ". Let's wait for that to finish first.");
+          talk("We are already voting for " + themevote.params.votingfor + ". Let's wait for that to finish first.");
         }
       } else if (command == "settheme") {
         if (users[chatData.id].supermod) {
           if (args == "none") {
-              setTheme(null);
-              talk("There is no theme.");
+            setTheme(null);
+            talk("There is no theme.");
           } else {
-              setTheme(args);
-              talk("Theme has been set to: " + args);
+            setTheme(args);
+            talk("Theme has been set to: " + args);
           }
         } else {
-          talk("i will absolutely not do that "+namebo);
+          talk("i will absolutely not do that " + namebo);
         }
       } else if (command == "printcard") {
         if (users[chatData.id].supermod) {
           printCard();
         } else {
-          talk("i will absolutely not do that "+namebo);
+          talk("i will absolutely not do that " + namebo);
         }
       } else if (command == "giftcard") {
-        if (chatData.card && theDJ){
-            var ccref = firebase.database().ref("cards/"+chatData.card+"/owner");
-            ccref.set(theDJ.id);
-            talk(":white_check_mark: Card has been transfered from "+namebo+" to @"+theDJ.name);
-            if (chatData.id !== theDJ.id) cardGiftedThisSong = true;
+        if (chatData.card && theDJ) {
+          var ccref = firebase.database().ref("cards/" + chatData.card + "/owner");
+          ccref.set(theDJ.id);
+          talk(":white_check_mark: Card has been transfered from " + namebo + " to @" + theDJ.name);
+          if (chatData.id !== theDJ.id) cardGiftedThisSong = true;
         }
       } else if (command == "grab") {
         if (cardForGrabs) giveCard(chatData.id, namebo);
@@ -1214,7 +1253,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 talk(users[prsnToAdd].username + " is already in the waitlist.");
               } else if (check == 2) {
                 talk(users[prsnToAdd].username + " is already on deck.");
-              } else if (check == 3){
+              } else if (check == 3) {
                 talk(users[prsnToAdd].username + " is almost for sure not here.");
               }
             }
@@ -1240,8 +1279,8 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           }
         }
       } else if (command == "dance") {
-        if (cardGiftedThisSong){
-          if (!robotsDancing){
+        if (cardGiftedThisSong) {
+          if (!robotsDancing) {
             var danceref = firebase.database().ref("dance");
             danceref.set(true);
             robotsDancing = true;
@@ -1264,10 +1303,10 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
 });
 
 var adam = {
-  np: function(song_name, dj, link, source){
+  np: function(song_name, dj, link, source) {
     if (!process.env.ADAM_URL) return;
     var thesource = "youtube";
-    if (source == 2){
+    if (source == 2) {
       thesource = "soundcloud"
     }
     var adam_data = {
@@ -1293,12 +1332,12 @@ var adam = {
       console.log(body1);
       if (body1) {
         try {
-        var adm = JSON.parse(body1);
-        adam_last = adm;
+          var adm = JSON.parse(body1);
+          adam_last = adm;
 
           console.log(adm);
-          if (adm){
-            if (adm.track_name){
+          if (adm) {
+            if (adm.track_name) {
               //if no track name, adam tags bad... dont use.
               if (adm.artist) song.artist = adm.artist;
               if (adm.track_name) song.title = adm.track_name;
@@ -1308,6 +1347,7 @@ var adam = {
             }
 
             if (adm.track_id) song.adamid = adm.track_id;
+            if (adm.playcount) song.playcount = adm.playcount;
             var tagUpdate = firebase.database().ref("tagUpdate");
             var tagFixData = {
               adamData: adm,
@@ -1315,16 +1355,16 @@ var adam = {
             };
             tagUpdate.set(tagFixData);
           }
-        } catch (e){
+        } catch (e) {
           console.log(e);
         }
       }
     });
   },
-  fix_tags: function(adamid, args){
+  fix_tags: function(adamid, args) {
     var song_data = args.split(' - ')
     if (song_data.length < 2) {
-        //bad format
+      //bad format
     } else {
       var artist0 = song_data[0].replace(/&amp;/g, '&');
       var title0 = song_data[1].replace(/&amp;/g, '&');
