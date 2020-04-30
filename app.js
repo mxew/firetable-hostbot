@@ -302,6 +302,7 @@ var startSong = function(noPrevPlay) {
         dj: theDJ.name,
         djid: theDJ.id,
         type: song.type,
+        duration: song.duration,
         url: song.url,
         cid: song.cid,
         colors: colors,
