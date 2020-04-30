@@ -252,7 +252,7 @@ var newMusicCheck = function(data) {
   var daysAgo;
   var isNew = false;
   var playcount = 0;
-  if (data.playcount) playcount = data.playcount;
+  if (data.playcount) playcount = parseInt(data.playcount);
   if (data) {
     var dif = Date.now() - data.postedDate;
     daysAgo = Math.floor(dif / 1000 / 60 / 60 / 24);
