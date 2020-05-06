@@ -1,137 +1,162 @@
 {
-    "rules": {
-        ".write": false,
-        ".read": false,
-        "chat": {
-            ".read": true,
-            "$comment": {
-                ".read": true,
-                ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true)",
-                ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
-                  "card":{
-                      ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-                  },
-                  "name":{
-                      ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
-                  }
-            }
+  "rules": {
+    ".write": false,
+    ".read": false,
+    "chat": {
+      ".read": true,
+      "$comment": {
+        ".read": true,
+        ".write": "(auth.uid != null && ((!data.exists() && newData.child('id').val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true)",
+        ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
+        "card": {
+          ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
         },
-        "nameClaim" :{
-          "$uname":{
-            ".write": "(auth.uid != null && (newData.val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' && root.child('banned/' + auth.uid).val() != true)",
-						".validate": "(!data.exists() || root.child('users/' + data.val() + '/username').val() !== $uname) && $uname.matches(/^[0-9a-zA-Z_]{1,22}$/)"
-          }
-        },
-        "thescreen":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "dance":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "theme":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "cards":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
-          ".indexOn": ["owner"]
-        },
-        "cardCount":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-      	"tagUpdate":{
-          ".read": true,
-          ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "songToPlay": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "songHistory": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "newMusic": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "colors": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "queues": {
-            ".read": true,
-            "$uid": {
-                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
-                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
-            }
-        },
-        "playlists": {
-            ".read": false,
-            "$uid": {
-                ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
-                ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
-            }
-        },
-        "table": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "waitlist": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "playdex": {
-           ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-
-        "playlimit": {
-            ".read": true,
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
-        },
-        "banned": {
-            ".read": "root.child('users/' + auth.uid + '/supermod').val() == true || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
-            ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
-            "$uid": {
-								".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-                ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || root.child('users/' + auth.uid + '/supermod').val() == true",
-                ".validate": "(root.child('users/' + $uid + '/supermod').val() != true) && ($uid != 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
-
-            }
-        },
-        "users": {
-            ".read": true,
-            ".indexOn": ["status", "username"],
-            "$uid": {
-                "status": {
-                    ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
-                },
-                "joined": {
-                  	".write": "auth.uid == $uid",
-                  	".validate": "newData.val() == now && !data.exists()",
-                },
-                "mod": {
-                    ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
-                },
-                "supermod": {
-                    ".write": "false"
-                },
-                "hostbot": {
-                    ".write": "false"
-                },
-                "selectedList": {
-                  	".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true"
-                },
-                "username": {
-                  	".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true",
-                    ".validate": "(root.child('nameClaim/' + newData.val() ).val() == auth.uid)"
-                }
-            }
+        "name": {
+          ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
         }
+      }
+    },
+    "chatFeed": {
+      ".read": true,
+      "$comment": {
+        ".read": true,
+        ".write": "(auth.uid != null && ((!data.exists() || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true))",
+        ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
+      }
+    },
+    "chatData": {
+      ".read": false,
+      "$comment": {
+        ".read": "root.child('banned/' + auth.uid).val() != true",
+        ".write": "(auth.uid != null && root.child('banned/' + auth.uid).val() != true && (newData.child('id').val() == auth.uid || data.child('id').val() == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))",
+        ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
+        "card": {
+          ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+        },
+        "name": {
+          ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
+        },
+        "feedID": {
+          ".validate": "root.child('chatFeed/' + newData.val() ).val() == $comment",
+        }
+      }
+    },
+    "nameClaim": {
+      "$uname": {
+        ".write": "(auth.uid != null && (newData.val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' && root.child('banned/' + auth.uid).val() != true)",
+        ".validate": "(!data.exists() || root.child('users/' + data.val() + '/username').val() !== $uname) && $uname.matches(/^[0-9a-zA-Z_]{1,22}$/)"
+      }
+    },
+    "thescreen": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "dance": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "theme": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "cards": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+      ".indexOn": ["owner"]
+    },
+    "cardCount": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "tagUpdate": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "songToPlay": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "songHistory": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "newMusic": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "colors": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "queues": {
+      ".read": true,
+      "$uid": {
+        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
+      }
+    },
+    "playlists": {
+      ".read": false,
+      "$uid": {
+        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
+      }
+    },
+    "table": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "waitlist": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "playdex": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+
+    "playlimit": {
+      ".read": true,
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+    },
+    "banned": {
+      ".read": "root.child('users/' + auth.uid + '/supermod').val() == true || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+      "$uid": {
+        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+        ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || root.child('users/' + auth.uid + '/supermod').val() == true",
+        ".validate": "(root.child('users/' + $uid + '/supermod').val() != true) && ($uid != 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
+
+      }
+    },
+    "users": {
+      ".read": true,
+      ".indexOn": ["status", "username"],
+      "$uid": {
+        "status": {
+          ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
+        },
+        "joined": {
+          ".write": "auth.uid == $uid",
+          ".validate": "newData.val() == now && !data.exists()",
+        },
+        "mod": {
+          ".write": "root.child('users/' + auth.uid + '/supermod').val() == true"
+        },
+        "supermod": {
+          ".write": "false"
+        },
+        "hostbot": {
+          ".write": "false"
+        },
+        "selectedList": {
+          ".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true"
+        },
+        "username": {
+          ".write": "auth.uid == $uid && root.child('banned/' + auth.uid).val() != true",
+          ".validate": "(root.child('nameClaim/' + newData.val() ).val() == auth.uid)"
+        }
+      }
     }
+  }
 }

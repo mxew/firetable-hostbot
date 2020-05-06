@@ -135,7 +135,8 @@ var talk = function(txt, card) {
   if (users[botid]) {
     if (users[botid].username) namebo2 = users[botid].username;
   }
-  var chat = firebase.database().ref("chat");
+  var chatData = firebase.database().ref("chatData");
+  var chatFeed = firebase.database().ref("chatFeed");
   var chooto = {
     time: firebase.database.ServerValue.TIMESTAMP,
     id: botid,
@@ -143,7 +144,11 @@ var talk = function(txt, card) {
     name: namebo2
   };
   if (card) chooto.card = card;
-  chat.push(chooto);
+  var chatItem = chatData.push(chooto, function() {
+    var feedItem = chatFeed.push(chatItem.key, function() {
+      chatItem.child("feedID").set(feedItem.key);
+    });
+  });
 };
 
 var updateTable = function() {
@@ -1049,123 +1054,46 @@ themepeek.once("value").then(function(snapshot) {
   }
 });
 
-var ref = firebase.database().ref("chat");
+var lookupChatData = function(chatID, callback) {
+  var chatData = firebase.database().ref("chatData/" + chatID);
+  chatData.once('value')
+    .then(function(snap) {
+      var data = snap.val();
+      return callback(data);
+    });
+};
+
+var ref = firebase.database().ref("chatFeed");
 ref.on('child_added', function(childSnapshot, prevChildKey) {
-  var chatData = childSnapshot.val();
-  var namebo = chatData.id;
-  if (users[chatData.id]) {
-    if (users[chatData.id].username) namebo = users[chatData.id].username;
-  }
+  var chatID = childSnapshot.val();
   if (!ignoreChats) {
-    console.log(namebo + ": " + chatData.txt);
-    var matches = chatData.txt.match(/^(?:[!])(\w+)\s*(.*)/i);
-    if (matches && botid !== chatData.id && started) {
-      var command = matches[1].toLowerCase();
-      var args = matches[2];
-      console.log("COMMAND:", command);
-      if (command == "addme") {
-        var check = addCheck(chatData.id);
-        if (!check) {
-          var pson = {
-            name: namebo,
-            id: chatData.id,
-            plays: 0
-          };
-          if (table.length >= 4) {
-            // table full. time to be on the waitlist now k
-            queue.push(pson);
-            talk(namebo + " added to waitlist. Length is now " + queue.length);
-            updateWaitlist();
-            updateLimit();
-          } else {
-            //table has room. add to table directly
-            if (table.length == 0) {
-              table.push(pson);
-              console.log(table);
-              playDex = 0;
-              startSong();
-            } else {
-              table.push(pson);
-              console.log(table);
-              updateTable();
-              updateLimit();
-            }
-          }
-        } else {
-          if (check == 1) {
-            talk("You are already in the waitlist.");
-          } else if (check == 2) {
-            talk("You are already on deck.");
-          }
-        }
-      } else if (command == "removeme") {
-        var removed = removeMe(chatData.id);
-        if (!removed) talk(namebo + ", you aren't even DJing...");
-      } else if (command == "skip") {
-        if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
-          nextSong();
-        }
-      } else if (command == "theme") {
-        if (theme) {
-          talk("The current theme is: " + theme);
-        } else {
-          talk("There is no theme at the moment. `!suggest` one if you'd like.")
-        }
-      } else if (command == "suggest") {
-        if (!themevote.active) {
-          themevote.go(args, namebo);
-        } else {
-          talk("We are already voting for " + themevote.params.votingfor + ". Let's wait for that to finish first.");
-        }
-      } else if (command == "settheme") {
-        if (users[chatData.id].supermod) {
-          if (args == "none") {
-            setTheme(null);
-            talk("There is no theme.");
-          } else {
-            setTheme(args);
-            talk("Theme has been set to: " + args);
-          }
-        } else {
-          talk("i will absolutely not do that " + namebo);
-        }
-      } else if (command == "printcard") {
-        if (users[chatData.id].supermod) {
-          printCard();
-        } else {
-          talk("i will absolutely not do that " + namebo);
-        }
-      } else if (command == "giftcard") {
-        if (chatData.card && theDJ) {
-          var ccref = firebase.database().ref("cards/" + chatData.card + "/owner");
-          ccref.set(theDJ.id);
-          talk(":white_check_mark: Card has been transfered from " + namebo + " to @" + theDJ.name);
-          if (chatData.id !== theDJ.id) cardGiftedThisSong = true;
-        }
-      } else if (command == "grab") {
-        if (cardForGrabs) giveCard(chatData.id, namebo);
-      } else if (command == "upbot") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          var namebo2 = botid;
-          if (users[botid]) {
-            if (users[botid].username) namebo2 = users[botid].username;
-          }
-          var check = addCheck(botid);
+    lookupChatData(chatID, function(chatData) {
+      var namebo = chatData.id;
+      if (users[chatData.id]) {
+        if (users[chatData.id].username) namebo = users[chatData.id].username;
+      }
+      console.log(namebo + ": " + chatData.txt);
+      var matches = chatData.txt.match(/^(?:[!])(\w+)\s*(.*)/i);
+      if (matches && botid !== chatData.id && started) {
+        var command = matches[1].toLowerCase();
+        var args = matches[2];
+        console.log("COMMAND:", command);
+        if (command == "addme") {
+          var check = addCheck(chatData.id);
           if (!check) {
             var pson = {
-              name: namebo2,
-              id: botid,
+              name: namebo,
+              id: chatData.id,
               plays: 0
             };
             if (table.length >= 4) {
               // table full. time to be on the waitlist now k
               queue.push(pson);
-              talk(namebo2 + " (that's me) added to waitlist. Length is now " + queue.length);
+              talk(namebo + " added to waitlist. Length is now " + queue.length);
               updateWaitlist();
               updateLimit();
             } else {
               //table has room. add to table directly
-              talk("OK! I will DJ.");
               if (table.length == 0) {
                 table.push(pson);
                 console.log(table);
@@ -1180,64 +1108,79 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             }
           } else {
             if (check == 1) {
-              talk("I am already in the waitlist.");
+              talk("You are already in the waitlist.");
             } else if (check == 2) {
-              talk("I am already on deck.");
+              talk("You are already on deck.");
             }
           }
-
-        }
-      } else if (command == "downbot") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          var removed = removeMe(botid);
-          if (!removed) {
-            talk(namebo + ", I am not even DJing...");
-          } else {
-            talk("OK! I will not DJ.");
+        } else if (command == "removeme") {
+          var removed = removeMe(chatData.id);
+          if (!removed) talk(namebo + ", you aren't even DJing...");
+        } else if (command == "skip") {
+          if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
+            nextSong();
           }
-        }
-      } else if (command == "screen" || command == "screendown") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          talk("activating the screen.");
-          var thescreen = firebase.database().ref("thescreen");
-          thescreen.set(true);
-        }
-      } else if (command == "killscreen" || command == "screenup") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          talk("ok.");
-          var thescreen = firebase.database().ref("thescreen");
-          thescreen.set(false)
-        }
-
-      } else if (command == "remove") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          var prsnToRemove = uidLookup(args);
-          if (prsnToRemove) {
-            var removed = removeMe(prsnToRemove);
-            if (!removed) talk("Can not remove " + args + " because they are not on the table or in the waitlist. Thanks.");
+        } else if (command == "theme") {
+          if (theme) {
+            talk("The current theme is: " + theme);
           } else {
-            talk("who is that");
+            talk("There is no theme at the moment. `!suggest` one if you'd like.")
           }
-        }
-      } else if (command == "add") {
-        if (users[chatData.id].mod || users[chatData.id].supermod) {
-          var prsnToAdd = uidLookup(args);
-          if (prsnToAdd) {
-            var check = addCheck(prsnToAdd, true);
+        } else if (command == "suggest") {
+          if (!themevote.active) {
+            themevote.go(args, namebo);
+          } else {
+            talk("We are already voting for " + themevote.params.votingfor + ". Let's wait for that to finish first.");
+          }
+        } else if (command == "settheme") {
+          if (users[chatData.id].supermod) {
+            if (args == "none") {
+              setTheme(null);
+              talk("There is no theme.");
+            } else {
+              setTheme(args);
+              talk("Theme has been set to: " + args);
+            }
+          } else {
+            talk("i will absolutely not do that " + namebo);
+          }
+        } else if (command == "printcard") {
+          if (users[chatData.id].supermod) {
+            printCard();
+          } else {
+            talk("i will absolutely not do that " + namebo);
+          }
+        } else if (command == "giftcard") {
+          if (chatData.card && theDJ) {
+            var ccref = firebase.database().ref("cards/" + chatData.card + "/owner");
+            ccref.set(theDJ.id);
+            talk(":white_check_mark: Card has been transfered from " + namebo + " to @" + theDJ.name);
+            if (chatData.id !== theDJ.id) cardGiftedThisSong = true;
+          }
+        } else if (command == "grab") {
+          if (cardForGrabs) giveCard(chatData.id, namebo);
+        } else if (command == "upbot") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            var namebo2 = botid;
+            if (users[botid]) {
+              if (users[botid].username) namebo2 = users[botid].username;
+            }
+            var check = addCheck(botid);
             if (!check) {
               var pson = {
-                name: users[prsnToAdd].username,
-                id: prsnToAdd,
+                name: namebo2,
+                id: botid,
                 plays: 0
               };
               if (table.length >= 4) {
                 // table full. time to be on the waitlist now k
                 queue.push(pson);
-                talk(users[prsnToAdd].username + " added to waitlist. Length is now " + queue.length);
+                talk(namebo2 + " (that's me) added to waitlist. Length is now " + queue.length);
                 updateWaitlist();
                 updateLimit();
               } else {
                 //table has room. add to table directly
+                talk("OK! I will DJ.");
                 if (table.length == 0) {
                   table.push(pson);
                   console.log(table);
@@ -1252,55 +1195,129 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
               }
             } else {
               if (check == 1) {
-                talk(users[prsnToAdd].username + " is already in the waitlist.");
+                talk("I am already in the waitlist.");
               } else if (check == 2) {
-                talk(users[prsnToAdd].username + " is already on deck.");
-              } else if (check == 3) {
-                talk(users[prsnToAdd].username + " is almost for sure not here.");
+                talk("I am already on deck.");
               }
             }
 
+          }
+        } else if (command == "downbot") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            var removed = removeMe(botid);
+            if (!removed) {
+              talk(namebo + ", I am not even DJing...");
+            } else {
+              talk("OK! I will not DJ.");
+            }
+          }
+        } else if (command == "screen" || command == "screendown") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            talk("activating the screen.");
+            var thescreen = firebase.database().ref("thescreen");
+            thescreen.set(true);
+          }
+        } else if (command == "killscreen" || command == "screenup") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            talk("ok.");
+            var thescreen = firebase.database().ref("thescreen");
+            thescreen.set(false)
+          }
+
+        } else if (command == "remove") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            var prsnToRemove = uidLookup(args);
+            if (prsnToRemove) {
+              var removed = removeMe(prsnToRemove);
+              if (!removed) talk("Can not remove " + args + " because they are not on the table or in the waitlist. Thanks.");
+            } else {
+              talk("who is that");
+            }
+          }
+        } else if (command == "add") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            var prsnToAdd = uidLookup(args);
+            if (prsnToAdd) {
+              var check = addCheck(prsnToAdd, true);
+              if (!check) {
+                var pson = {
+                  name: users[prsnToAdd].username,
+                  id: prsnToAdd,
+                  plays: 0
+                };
+                if (table.length >= 4) {
+                  // table full. time to be on the waitlist now k
+                  queue.push(pson);
+                  talk(users[prsnToAdd].username + " added to waitlist. Length is now " + queue.length);
+                  updateWaitlist();
+                  updateLimit();
+                } else {
+                  //table has room. add to table directly
+                  if (table.length == 0) {
+                    table.push(pson);
+                    console.log(table);
+                    playDex = 0;
+                    startSong();
+                  } else {
+                    table.push(pson);
+                    console.log(table);
+                    updateTable();
+                    updateLimit();
+                  }
+                }
+              } else {
+                if (check == 1) {
+                  talk(users[prsnToAdd].username + " is already in the waitlist.");
+                } else if (check == 2) {
+                  talk(users[prsnToAdd].username + " is already on deck.");
+                } else if (check == 3) {
+                  talk(users[prsnToAdd].username + " is almost for sure not here.");
+                }
+              }
+
+            } else {
+              talk("who is that");
+            }
+          }
+        } else if (command == "become") {
+          talk("i do not remember how to do that.")
+        } else if (command == "wait") {
+          talk("wait");
+        } else if (command == "hot") {
+          firelevel.hot(chatData.id, namebo);
+        } else if (command == "storm") {
+          firelevel.storm(chatData.id, namebo);
+        } else if (command == "link") {
+          if (song) {
+            if (song.url) {
+              talk(song.url);
+            } else {
+              talk("Nothing is playing...");
+            }
+          }
+        } else if (command == "dance") {
+          if (cardGiftedThisSong) {
+            if (!robotsDancing) {
+              var danceref = firebase.database().ref("dance");
+              danceref.set(true);
+              robotsDancing = true;
+              talk(":artificial_satellite: D.A.N.C.E satellite: `GLOBAL DANCE SEQUENCE NO. 1 HAS BEEN INITIATED.`");
+            } else {
+              talk(":artificial_satellite: D.A.N.C.E satellite: `already broadcasting dance signal thanks`");
+            }
           } else {
-            talk("who is that");
+            talk(":red_circle::satellite: unable to communicate with the D.A.N.C.E. satellite... if you gift the DJ a h0t new card, i'm sure they'll help boost your signal");
           }
         }
-      } else if (command == "become") {
-        talk("i do not remember how to do that.")
-      } else if (command == "wait") {
-        talk("wait");
-      } else if (command == "hot") {
+      } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
         firelevel.hot(chatData.id, namebo);
-      } else if (command == "storm") {
+      } else if (chatData.txt == "🌧" || chatData.txt == ":cloud_with_rain:") {
         firelevel.storm(chatData.id, namebo);
-      } else if (command == "link") {
-        if (song) {
-          if (song.url) {
-            talk(song.url);
-          } else {
-            talk("Nothing is playing...");
-          }
-        }
-      } else if (command == "dance") {
-        if (cardGiftedThisSong) {
-          if (!robotsDancing) {
-            var danceref = firebase.database().ref("dance");
-            danceref.set(true);
-            robotsDancing = true;
-            talk(":artificial_satellite: D.A.N.C.E satellite: `GLOBAL DANCE SEQUENCE NO. 1 HAS BEEN INITIATED.`");
-          } else {
-            talk(":artificial_satellite: D.A.N.C.E satellite: `already broadcasting dance signal thanks`");
-          }
-        } else {
-          talk(":red_circle::satellite: unable to communicate with the D.A.N.C.E. satellite... if you gift the DJ a h0t new card, i'm sure they'll help boost your signal");
-        }
+      } else if (chatData.txt == "1" && themevote.active) {
+        themevote.params.votes[chatData.id] = 1;
       }
-    } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
-      firelevel.hot(chatData.id, namebo);
-    } else if (chatData.txt == "🌧" || chatData.txt == ":cloud_with_rain:") {
-      firelevel.storm(chatData.id, namebo);
-    } else if (chatData.txt == "1" && themevote.active) {
-      themevote.params.votes[chatData.id] = 1;
-    }
+
+    });
   }
 });
 
@@ -1528,26 +1545,25 @@ setTimeout(function() {
 setInterval(function() {
   //keep stored chat history at 20 chats.
   console.log("hi");
-  var ref = firebase.database().ref("chat");
+  var ref = firebase.database().ref("chatFeed");
   ref.once("value").then(function(snapshot) {
     var data = snapshot.val();
     var chats = [];
     for (var key in data) {
-      chats.push(key);
+      chats.push({
+        feed: key,
+        data: data[key]
+      });
     }
     console.log(chats.length);
     if (chats.length > 20) {
       var shave = chats.length - 21;
       for (var i = 0; i <= shave; i++) {
         console.log(chats[i]);
-        var removeThis = firebase.database().ref('chat/' + chats[i]);
-        removeThis.remove()
-          .then(function() {
-            console.log("Remove succeeded.")
-          })
-          .catch(function(error) {
-            console.log("Remove failed: " + error.message)
-          });
+        var removeThis = firebase.database().ref('chatFeed/' + chats[i].feed);
+        var removeData = firebase.database().ref('chatData/' + chats[i].data);
+        removeThis.remove();
+        removeData.remove();
       }
     }
   });
