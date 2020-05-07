@@ -13,7 +13,7 @@
     "chatData": {
       ".read": false,
       "$comment": {
-        ".read": "root.child('banned/' + auth.uid).val() != true",
+        ".read": "root.child('banned/' + auth.uid).val() != true && (root.child('blocks').child(auth.uid).child(data.child('id').val()).val() != true && root.child('blocks').child(data.child('id').val()).child(auth.uid).val() != true)",
         ".write": "(auth.uid != null && root.child('banned/' + auth.uid).val() != true && (newData.child('id').val() == auth.uid || data.child('id').val() == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))",
         ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
         "card": {
@@ -86,6 +86,16 @@
       "$uid": {
         ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
         ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
+      }
+    },
+  	"blocks": {
+      ".read": false,
+     	"$uid": {
+        	".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+        	".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+            "$blockedID":{
+              ".validate": "root.child('users/'+ $blockedID + '/mod').val() !== true && root.child('users/'+ $blockedID + '/supermod').val() !== true && root.child('users/'+ $blockedID + '/hostbot').val() !== true"
+            }
       }
     },
     "table": {
