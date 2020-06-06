@@ -6,8 +6,13 @@
       ".read": true,
       "$comment": {
         ".read": true,
-        ".write": "(auth.uid != null && ((!data.exists() || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true))",
-        ".validate": "root.child('chatData/' + newData.child('chatID').val() ).exists() && !root.child('chatData/' + newData.child('chatID').val()+ '/feedID').exists()"
+        ".write": "(auth.uid != null && ((!data.exists() || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
+        "chatID":{
+          ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
+        },
+        "hidden":{
+             ".validate": "(auth.uid != null && (root.child('users/' + auth.uid + '/supermod').val() == true || root.child('users/' + auth.uid + '/mod').val() == true))"
+          }
       }
     },
     "chatData": {
