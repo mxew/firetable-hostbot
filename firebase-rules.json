@@ -7,7 +7,7 @@
       "$comment": {
         ".read": true,
         ".write": "(auth.uid != null && ((!data.exists() || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true))",
-        ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
+        ".validate": "root.child('chatData/' + newData.child('chatID').val() ).exists() && !root.child('chatData/' + newData.child('chatID').val()+ '/feedID').exists()"
       }
     },
     "chatData": {
@@ -23,7 +23,7 @@
           ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
         },
         "feedID": {
-          ".validate": "root.child('chatFeed/' + newData.val() ).val() == $comment",
+          ".validate": "root.child('chatFeed/' + newData.val() + '/chatID' ).val() == $comment",
         }
       }
     },
@@ -131,6 +131,12 @@
       "$uid": {
         "status": {
           ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true || newData.val() == false)"
+        },
+        "idle": {
+          ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true)",
+            "since": {
+                ".validate": "newData.val() == now"
+            }
         },
         "joined": {
           ".write": "auth.uid == $uid",

@@ -145,7 +145,10 @@ var talk = function(txt, card) {
   };
   if (card) chooto.card = card;
   var chatItem = chatData.push(chooto, function() {
-    var feedItem = chatFeed.push(chatItem.key, function() {
+    var feedObj = {
+      chatID: chatItem.key
+    };
+    var feedItem = chatFeed.push(feedObj, function() {
       chatItem.child("feedID").set(feedItem.key);
     });
   });
@@ -1065,7 +1068,8 @@ var lookupChatData = function(chatID, callback) {
 
 var ref = firebase.database().ref("chatFeed");
 ref.on('child_added', function(childSnapshot, prevChildKey) {
-  var chatID = childSnapshot.val();
+  var feedData = childSnapshot.val();
+  var chatID = feedData.chatID;
   if (!ignoreChats) {
     lookupChatData(chatID, function(chatData) {
       var namebo = chatData.id;
@@ -1552,7 +1556,7 @@ setInterval(function() {
     for (var key in data) {
       chats.push({
         feed: key,
-        data: data[key]
+        data: data[key].chatID
       });
     }
     console.log(chats.length);
