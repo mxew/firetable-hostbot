@@ -256,6 +256,20 @@ var ytVideoCheck = function(result) {
   return isBroken;
 };
 
+var ytAgeRestrictionCheck = function(result) {
+  var isRestricted = false;
+  if (result.items[0].contentDetails) {
+    if (result.items[0].contentDetails.contentRating) {
+      if (result.items[0].contentDetails.contentRating.ytRating) {
+        if (result.items[0].contentDetails.contentRating.ytRating == "ytAgeRestricted") {
+            isRestricted = true;
+        }
+      }
+    }
+  }
+  return isRestricted;
+};
+
 var newMusicCheck = function(data) {
   var daysAgo;
   var isNew = false;
@@ -450,7 +464,7 @@ var startSong = function(noPrevPlay) {
               startSong(true); //try again with SAME DJ
             }, 3000);
           } else {
-            console.log(result);
+            console.log(result.items[0].contentDetails);
             if (!result.items.length) {
               var removeThis = queueRef.child(nextSongkey);
               removeThis.remove()
@@ -494,6 +508,29 @@ var startSong = function(noPrevPlay) {
                   console.log("Song Remove failed: " + error.message);
                 });
               talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
+              setTimeout(function() {
+                startSong(true); //try again with SAME DJ
+              }, 3000);
+            } else if (ytAgeRestrictionCheck(result)){
+              var removeThis = queueRef.child(nextSongkey);
+              removeThis.remove()
+                .then(function() {
+                  console.log("song remove went great.");
+                  var songBack = {
+                    cid: data[nextSongkey].cid,
+                    name: data[nextSongkey].name,
+                    type: data[nextSongkey].type,
+                    flagged: {
+                      date: Date.now(),
+                      code: 7
+                    }
+                  };
+                  queueRef.push(songBack);
+                })
+                .catch(function(error) {
+                  console.log("Song Remove failed: " + error.message);
+                });
+              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is age restricted and can't be played outside of Youtube.com. Letting you play whatever is next in your queue instead.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
