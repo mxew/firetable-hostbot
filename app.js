@@ -464,7 +464,7 @@ var startSong = function(noPrevPlay) {
               startSong(true); //try again with SAME DJ
             }, 3000);
           } else {
-            console.log(result.items[0].contentDetails);
+            console.log(result);
             if (!result.items.length) {
               var removeThis = queueRef.child(nextSongkey);
               removeThis.remove()
@@ -536,11 +536,13 @@ var startSong = function(noPrevPlay) {
               }, 3000);
             } else {
 
-              var input = result.items[0].contentDetails.duration;
               var s2p = firebase.database().ref("songToPlay");
               var yargo = data[nextSongkey].name.split(" - ");
               var sartist = yargo[0];
               var stitle = yargo[1];
+
+
+              var input = result.items[0].contentDetails.duration;
 
               var reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
               var hours = 0,
@@ -554,6 +556,8 @@ var startSong = function(noPrevPlay) {
                 if (matches[2]) minutes = Number(matches[2]);
                 if (matches[3]) seconds = Number(matches[3]);
                 totalseconds = hours * 3600 + minutes * 60 + seconds;
+              } else {
+                totalseconds = 10 * 60;
               }
 
               lastfm.duration = totalseconds;
