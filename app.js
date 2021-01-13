@@ -154,6 +154,14 @@ var talk = function(txt, card) {
   });
 };
 
+var talkWithSleep = function(messages, timeout) {
+  messages.forEach( ( message, i ) => {
+    setTimeout( () => {
+      talk( message );
+    }, i * timeout );
+  });
+};
+
 var updateTable = function() {
   var table2 = firebase.database().ref("table");
   table2.set(table);
