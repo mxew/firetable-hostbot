@@ -1361,6 +1361,60 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           } else {
             talk(":red_circle::satellite: unable to communicate with the D.A.N.C.E. satellite... if you gift the DJ a h0t new card, i'm sure they'll help boost your signal");
           }
+        } else if (command == "upvote") {
+          var messages = [
+            ":heart: :purple_heart: :purple_heart: :purple_heart: this",
+            ":heart: :heart: :purple_heart: :purple_heart: SONG",
+            ":heart: :heart: :heart: :purple_heart: is",
+            ":heart: :heart: :heart: :heart: AWESOME!"
+          ];
+          talkWithSleep(messages,1500);
+        } else if (command == "upboat") {
+          var messages = [
+            "AHOYYYyyYYY",
+            ":sailboat: :small_blue_diamond: :small_blue_diamond: :small_blue_diamond: this",
+            ":small_blue_diamond: :sailboat: :small_blue_diamond: :small_blue_diamond: BOAT",
+            ":small_blue_diamond: :small_blue_diamond: :sailboat: :small_blue_diamond: is",
+            ":small_blue_diamond: :small_blue_diamond: :small_blue_diamond: :sailboat: AFLOAT!"
+          ];
+          talkWithSleep(messages,1500);
+        } else if (command == "upgoat") {
+          var messages = [
+            ":goat: :diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: this",
+            ":diamond_shape_with_a_dot_inside: :goat: :diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: GOAT",
+            ":diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: :goat: :diamond_shape_with_a_dot_inside: is",
+            ":diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: :diamond_shape_with_a_dot_inside: :goat: HAUTE!"
+          ];
+          talkWithSleep(messages,1500);
+        } else if (command == "upbooty") {
+          // Thanks, Adam.
+          var messages = [
+            ":peach: :white_small_square: :white_small_square: :white_small_square: This",
+            ":white_small_square: :peach: :white_small_square: :white_small_square: BOOTY",
+            ":white_small_square: :white_small_square: :peach: :white_small_square: is",
+            ":white_small_square: :white_small_square: :white_small_square: :peach: FRUITY!!"
+          ];
+          talkWithSleep(messages,1500);
+        } else if(command == "mrupvote") {
+          // Thanks, Rob.
+          var speeches = [
+            "is good!", "OK then!", "i like!", "ikr!", "yes.", "oh! yeah!", "hello.", "we dance now.", "it's party!", "very fine.", "party :ok:!", "mm! disco'y!", ":cool:"
+          ];
+
+          var msgIndex = Math.floor(Math.random() * speeches.length);
+          var talkyPart = speeches[msgIndex];
+
+          messages = [
+              ":rotating_light: uh-oh!! it's `MR. UPVOTE`:rotating_light:",
+              ':tophat:',
+              ':eyes::ear:',
+              ':nose:',
+              ':tongue::sweat_drops: - " '+talkyPart+' "',
+              ':shirt::ok_hand:',
+              ':jeans:',
+              ':shoe:'
+          ];
+          talkWithSleep(messages,1000);
         }
       } else if (chatData.txt == "🔥" || chatData.txt == ":fire:") {
         firelevel.hot(chatData.id, namebo);
