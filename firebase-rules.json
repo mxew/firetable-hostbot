@@ -6,7 +6,7 @@
       ".read": true,
       "$comment": {
         ".read": true,
-        ".write": "(auth.uid != null && ((!data.exists() || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
+        ".write": "(auth.uid != null && ((!data.exists() || root.child('users/' + auth.uid + '/hostbot').val() == true || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
         "chatID":{
           ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
         },
@@ -19,10 +19,10 @@
       ".read": false,
       "$comment": {
         ".read": "root.child('banned/' + auth.uid).val() != true && (root.child('blocks').child(auth.uid).child(data.child('id').val()).val() != true && root.child('blocks').child(data.child('id').val()).child(auth.uid).val() != true)",
-        ".write": "(auth.uid != null && root.child('banned/' + auth.uid).val() != true && (newData.child('id').val() == auth.uid || data.child('id').val() == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'))",
+        ".write": "(auth.uid != null && root.child('banned/' + auth.uid).val() != true && (newData.child('id').val() == auth.uid || data.child('id').val() == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true))",
         ".validate": "newData.child('txt').isString() && newData.child('txt').val().length > 0 && newData.child('txt').val().length <= 240",
         "card": {
-          ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
+          ".validate": "(root.child('cards/' + newData.val() + '/owner').val() == auth.uid) || (root.child('users/' + auth.uid + '/hostbot').val() == true)",
         },
         "name": {
           ".validate": "(root.child('users/' + auth.uid + '/username').val() == newData.val()) || (auth.uid == newData.val())",
@@ -34,74 +34,74 @@
     },
     "nameClaim": {
       "$uname": {
-        ".write": "(auth.uid != null && (newData.val() == auth.uid) || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' && root.child('banned/' + auth.uid).val() != true)",
+        ".write": "(auth.uid != null && (newData.val() == auth.uid) || root.child('users/' + auth.uid + '/hostbot').val() == true && root.child('banned/' + auth.uid).val() != true)",
         ".validate": "(!data.exists() || root.child('users/' + data.val() + '/username').val() !== $uname) && $uname.matches(/^[0-9a-zA-Z_]{1,22}$/)"
       }
     },
     "thescreen": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "dance": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "lights": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "theme": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "cards": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true",
       ".indexOn": ["owner"]
     },
     "cardCount": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "tagUpdate": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "songToPlay": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "songHistory": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "newMusic": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "colors": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "queues": {
       ".read": true,
       "$uid": {
-        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
-        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
+        ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true"
       }
     },
     "playlists": {
       ".read": false,
       "$uid": {
-        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
-        ".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true"
+        ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true"
       }
     },
   	"blocks": {
       ".read": false,
      	"$uid": {
-        	".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
-        	".write": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2') && root.child('banned/' + auth.uid).val() != true",
+        	".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        	".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
             "$blockedID":{
               ".validate": "root.child('users/'+ $blockedID + '/mod').val() !== true && root.child('users/'+ $blockedID + '/supermod').val() !== true && root.child('users/'+ $blockedID + '/hostbot').val() !== true"
             }
@@ -109,27 +109,27 @@
     },
     "table": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "waitlist": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "playdex": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
 
     "playlimit": {
       ".read": true,
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'"
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
     "banned": {
-      ".read": "root.child('users/' + auth.uid + '/supermod').val() == true || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
-      ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2'",
+      ".read": "root.child('users/' + auth.uid + '/supermod').val() == true || root.child('users/' + auth.uid + '/hostbot').val() == true",
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true",
       "$uid": {
-        ".read": "($uid == auth.uid || auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')",
-        ".write": "auth.uid == 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2' || root.child('users/' + auth.uid + '/supermod').val() == true",
+        ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true)",
+        ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true || root.child('users/' + auth.uid + '/supermod').val() == true",
         ".validate": "(root.child('users/' + $uid + '/supermod').val() != true) && ($uid != 'OiJ7rcoNaNdvk3KlFGUJx1Fqjer2')"
 
       }
