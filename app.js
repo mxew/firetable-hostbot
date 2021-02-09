@@ -572,8 +572,9 @@ var startSong = function(noPrevPlay) {
               }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
-                sartist = "Unknown";
+                sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
               }
+              if (sartist == "Unknown") sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
               var adamString = sartist + " - " + stitle;
               if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(result.items[0].snippet.publishedAt);
@@ -709,8 +710,9 @@ var startSong = function(noPrevPlay) {
 
               if (!stitle) {
                 stitle = sartist;
-                sartist = "Unknown";
+                sartist = tracks[0].user.username;
               }
+              if (sartist == "Unknown") sartist = tracks[0].user.username;
               var adamString = sartist + " - " + stitle;
               if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(tracks[0].created_at);
@@ -1403,8 +1405,15 @@ var adam = {
           if (adm) {
             if (adm.track_name) {
               //if no track name, adam tags bad... dont use.
-              if (adm.artist) song.artist = adm.artist;
-              if (adm.track_name) song.title = adm.track_name;
+              if (adm.artist){
+                if (adm.artist !== "Unknown"){
+                  song.artist = adm.artist;
+                  song.title = adm.track_name;
+                } else {
+                  // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
+                  adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+                }
+              }
             } else {
               //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
               adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
