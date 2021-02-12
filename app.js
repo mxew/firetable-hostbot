@@ -296,15 +296,19 @@ var nextSong = function(noPrevPlay) {
   //we need to remove this song that just played to the bottom of dj's queue
   playDex++; //shift the spotlight to the right
   if (queue.length && theDJ) {
-    if (theDJ.plays >= playlimit) {
+    if (theDJ.removeAfter) {
+      removePerson(theDJ.id);
+    } else if (theDJ.plays >= playlimit) {
       var foundDJ = removePerson(theDJ.id);
-      if (foundDJ) {
+      if (foundDJ && !theDJ.removeAfter) {
         //re-add this DJ to waitlist
         //if we didn't find them then I assume they left mid song?idk
         theDJ.plays = 0;
         queue.push(theDJ);
       }
     }
+  } else if (theDJ){
+    if (theDJ.removeAfter) removePerson(theDJ.id);
   }
   startSong(noPrevPlay);
 };
@@ -1163,6 +1167,70 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         } else if (command == "removeme") {
           var removed = removeMe(chatData.id);
           if (!removed) talk(namebo + ", you aren't even DJing...");
+        } else if (command == "removemeafter" || command == "removeafter") {
+          var check = addCheck(chatData.id);
+          if (!check){
+            talk(namebo + ", you aren't even DJing...");
+          } else if (check == 1){
+            //user in waitlist
+            for (var i = 0; i < queue.length; i++) {
+              if (queue[i].id == chatData.id) {
+                queue[i].removeAfter = true;
+                updateWaitlist();
+                talk(namebo + ", I'll remove you after your next song.");
+                break;
+              }
+            }
+          } else if (check == 2){
+            //user on deck
+            if (chatData.id == theDJ.id){
+              // user is current dj
+              talk(namebo + ", I'll remove you at the end of this song.");
+              theDJ.removeAfter = true;
+            } else {
+              // user is not current dj
+              talk(namebo + ", I'll remove you after your next song.");
+            }
+            for (var i = 0; i < table.length; i++) {
+              if (table[i].id == chatData.id) {
+                table[i].removeAfter = true
+                updateTable();
+                break;
+              }
+            }
+          }
+        } else if (command == "dontremovemeafter" || command == "dontremoveafter" || command == "dontremoveme" || command == "dontremove") {
+          var check = addCheck(chatData.id);
+          if (!check){
+            talk(namebo + ", you aren't even DJing...");
+          } else if (check == 1){
+            //user in waitlist
+            for (var i = 0; i < queue.length; i++) {
+              if (queue[i].id == chatData.id) {
+                queue[i].removeAfter = false;
+                updateWaitlist();
+                talk(namebo + ", I will be sure to not remove you after your next track.");
+                break;
+              }
+            }
+          } else if (check == 2){
+            //user on deck
+            if (chatData.id == theDJ.id){
+              // user is current dj
+              talk(namebo + ", I will NOT remove you after this song.");
+              theDJ.removeAfter = false;
+            } else {
+              // user is not current dj
+              talk(namebo + ", I will NOT remove you after your next song.");
+            }
+            for (var i = 0; i < table.length; i++) {
+              if (table[i].id == chatData.id) {
+                table[i].removeAfter = false;
+                updateTable();
+                break;
+              }
+            }
+          }
         } else if (command == "skip") {
           if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
             nextSong();
