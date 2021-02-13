@@ -576,9 +576,14 @@ var startSong = function(noPrevPlay) {
               }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
+                if (result.items[0].snippet.channelTitle == "Various Artists - Topic"){ // this youtube channel name is a lie...
+                  sartist = "Unknown";
+                } else {
+                  sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
+                }
+              } else if (sartist == "Unknown") {
                 sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
               }
-              if (sartist == "Unknown") sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
               var adamString = sartist + " - " + stitle;
               if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(result.items[0].snippet.publishedAt);
@@ -1167,7 +1172,7 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         } else if (command == "removeme") {
           var removed = removeMe(chatData.id);
           if (!removed) talk(namebo + ", you aren't even DJing...");
-        } else if (command == "removemeafter" || command == "removeafter") {
+        } else if (command == "removemeafter" || command == "removeafter" || command == "gottacatchmybus") {
           var check = addCheck(chatData.id);
           if (!check){
             talk(namebo + ", you aren't even DJing...");
