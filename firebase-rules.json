@@ -50,6 +50,10 @@
       ".read": true,
       ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
+    "cardSpecial": {
+      ".read": true,
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
+    },
     "theme": {
       ".read": true,
       ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"

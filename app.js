@@ -37,6 +37,7 @@ var theme = null;
 var songTimeout = null;
 var adam_last = null;
 var songtimer = null;
+var cardSpecial = false;
 
 var configs = {
   apiKey: process.env.FIREBASE_KEY,
@@ -932,7 +933,7 @@ var printCard = function(userid) {
       artist: song.artist,
       image: song.image,
       date: now,
-      special: false,
+      special: cardSpecial,
       owner: false
     };
 
@@ -1096,6 +1097,16 @@ ref2.on('value', function(dataSnapshot) {
       var statusref = firebase.database().ref("users/" + botid + "/status");
       statusref.set(true);
     }
+  }
+});
+
+var refCardSpecial = firebase.database().ref("cardSpecial");
+refCardSpecial.on('value', function(dataSnapshot) {
+  var resultActual = dataSnapshot.val();
+  if (resultActual){
+    cardSpecial = resultActual;
+  } else {
+    cardSpecial = false;
   }
 });
 

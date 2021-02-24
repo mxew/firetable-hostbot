@@ -1,6 +1,6 @@
 {
   "name": "firetable-hostbot",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "node.js 'chatbot' back end for firetable, a virtual music listening room powered by firebase.",
   "main": "app.js",
   "dependencies": {
