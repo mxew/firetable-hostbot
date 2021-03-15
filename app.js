@@ -1561,7 +1561,7 @@ var adam = {
                   for (var key in data) {
                     if (data[key].type == song.type) {
                       newData = data[key];
-                      newDate.name = song.artist + " - " +song.title;
+                      newData.name = song.artist + " - " +song.title;
                       queueRef.child(key).set(newData);
                     }
                   }
