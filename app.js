@@ -1359,11 +1359,11 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           if (users[chatData.id].mod || users[chatData.id].supermod) {
             // do the flag thing
             var code = false;
-            if (args == "broken") {
+            if (args == "broken" || args == "8") {
               code = 8;
-            } else if (args == "bitrate" || args == "quality" || args == "incomplete") {
+            } else if (args == "bitrate" || args == "quality" || args == "incomplete" || args == "9") {
               code = 9;
-            } else if (args == "offtheme") {
+            } else if (args == "offtheme" || args == "10") {
               code = 10;
             }
 
@@ -1549,7 +1549,7 @@ var adam = {
               adamData: adm,
               cid: song.cid
             };
-            
+
             // send tag update to clients
             tagUpdate.set(tagFixData);
 
