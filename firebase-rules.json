@@ -91,14 +91,20 @@
       ".read": true,
       "$uid": {
         ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
-        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true"
+        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        ".indexOn": "cid"
       }
     },
     "playlists": {
       ".read": false,
       "$uid": {
         ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
-        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true"
+        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        "$listid": {
+          "list":{
+            ".indexOn": "cid"
+          }
+        }
       }
     },
   	"blocks": {

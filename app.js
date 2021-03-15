@@ -263,7 +263,7 @@ var ytAgeRestrictionCheck = function(result) {
     if (result.items[0].contentDetails.contentRating) {
       if (result.items[0].contentDetails.contentRating.ytRating) {
         if (result.items[0].contentDetails.contentRating.ytRating == "ytAgeRestricted") {
-            isRestricted = true;
+          isRestricted = true;
         }
       }
     }
@@ -308,7 +308,7 @@ var nextSong = function(noPrevPlay) {
         queue.push(theDJ);
       }
     }
-  } else if (theDJ){
+  } else if (theDJ) {
     if (theDJ.removeAfter) removePerson(theDJ.id);
   }
   startSong(noPrevPlay);
@@ -516,7 +516,7 @@ var startSong = function(noPrevPlay) {
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
-            } else if (ytAgeRestrictionCheck(result)){
+            } else if (ytAgeRestrictionCheck(result)) {
               var removeThis = queueRef.child(nextSongkey);
               removeThis.remove()
                 .then(function() {
@@ -577,7 +577,7 @@ var startSong = function(noPrevPlay) {
               }, (totalseconds * 1000) - 3000);
               if (!stitle) {
                 stitle = sartist;
-                if (result.items[0].snippet.channelTitle == "Various Artists - Topic"){ // this youtube channel name is a lie...
+                if (result.items[0].snippet.channelTitle == "Various Artists - Topic") { // this youtube channel name is a lie...
                   sartist = "Unknown";
                 } else {
                   sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
@@ -1103,7 +1103,7 @@ ref2.on('value', function(dataSnapshot) {
 var refCardSpecial = firebase.database().ref("cardSpecial");
 refCardSpecial.on('value', function(dataSnapshot) {
   var resultActual = dataSnapshot.val();
-  if (resultActual){
+  if (resultActual) {
     cardSpecial = resultActual;
   } else {
     cardSpecial = false;
@@ -1185,9 +1185,9 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           if (!removed) talk(namebo + ", you aren't even DJing...");
         } else if (command == "removemeafter" || command == "removeafter" || command == "gottacatchmybus") {
           var check = addCheck(chatData.id);
-          if (!check){
+          if (!check) {
             talk(namebo + ", you aren't even DJing...");
-          } else if (check == 1){
+          } else if (check == 1) {
             //user in waitlist
             for (var i = 0; i < queue.length; i++) {
               if (queue[i].id == chatData.id) {
@@ -1197,9 +1197,9 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 break;
               }
             }
-          } else if (check == 2){
+          } else if (check == 2) {
             //user on deck
-            if (chatData.id == theDJ.id){
+            if (chatData.id == theDJ.id) {
               // user is current dj
               talk(namebo + ", I'll remove you at the end of this song.");
               theDJ.removeAfter = true;
@@ -1217,9 +1217,9 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
           }
         } else if (command == "dontremovemeafter" || command == "dontremoveafter" || command == "dontremoveme" || command == "dontremove") {
           var check = addCheck(chatData.id);
-          if (!check){
+          if (!check) {
             talk(namebo + ", you aren't even DJing...");
-          } else if (check == 1){
+          } else if (check == 1) {
             //user in waitlist
             for (var i = 0; i < queue.length; i++) {
               if (queue[i].id == chatData.id) {
@@ -1229,9 +1229,9 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                 break;
               }
             }
-          } else if (check == 2){
+          } else if (check == 2) {
             //user on deck
-            if (chatData.id == theDJ.id){
+            if (chatData.id == theDJ.id) {
               // user is current dj
               talk(namebo + ", I will NOT remove you after this song.");
               theDJ.removeAfter = false;
@@ -1355,6 +1355,45 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
             thescreen.set(false)
           }
 
+        } else if (command == "flag") {
+          if (users[chatData.id].mod || users[chatData.id].supermod) {
+            // do the flag thing
+            var code = false;
+            if (args == "broken") {
+              code = 8;
+            } else if (args == "bitrate" || args == "quality" || args == "incomplete") {
+              code = 9;
+            } else if (args == "offtheme") {
+              code = 10;
+            }
+
+            if (song.cid && queueRef) {
+              if (code) {
+                var flag = {
+                  date: Date.now(),
+                  code: code
+                };
+                queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+                  .then(function(snapshot) {
+                    var data = snapshot.val();
+                    if (data) {
+                      for (var key in data) {
+                        if (data[key].type == song.type) {
+                          newData = data[key];
+                          newData.flagged = flag;
+                          queueRef.child(key).set(newData);
+                        }
+                      }
+                    }
+                    talk(":triangular_flag_on_post: FLAGGED (CODE " + code + ")");
+                  });
+              } else {
+                talk("Please specify a valid flag reason (ex: !flag broken, !flag offtheme, !flag quality)");
+              }
+            } else {
+              talk("I just reloaded... I don't remember where in the DJ's lists I got this from.");
+            }
+          }
         } else if (command == "remove") {
           if (users[chatData.id].mod || users[chatData.id].supermod) {
             var prsnToRemove = uidLookup(args);
@@ -1489,8 +1528,8 @@ var adam = {
           if (adm) {
             if (adm.track_name) {
               //if no track name, adam tags bad... dont use.
-              if (adm.artist){
-                if (adm.artist !== "Unknown"){
+              if (adm.artist) {
+                if (adm.artist !== "Unknown") {
                   song.artist = adm.artist;
                   song.title = adm.track_name;
                 } else {
