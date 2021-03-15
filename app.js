@@ -1549,7 +1549,24 @@ var adam = {
               adamData: adm,
               cid: song.cid
             };
+            
+            // send tag update to clients
             tagUpdate.set(tagFixData);
+
+            // update the dj's playlist with updated tags
+            queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+              .then(function(snapshot) {
+                var data = snapshot.val();
+                if (data) {
+                  for (var key in data) {
+                    if (data[key].type == song.type) {
+                      newData = data[key];
+                      newDate.name = song.artist + " - " +song.title;
+                      queueRef.child(key).set(newData);
+                    }
+                  }
+                }
+              });
           }
         } catch (e) {
           console.log(e);
