@@ -585,8 +585,6 @@ var startSong = function(noPrevPlay) {
               } else if (sartist == "Unknown") {
                 sartist = result.items[0].snippet.channelTitle.replace(" - Topic", "");
               }
-              var adamString = sartist + " - " + stitle;
-              if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(result.items[0].snippet.publishedAt);
               var postedDate = thedate.getTime();
               var now = Date.now();
@@ -678,6 +676,8 @@ var startSong = function(noPrevPlay) {
                     type: song.type
                   };
                   queueRef.push(songBack);
+                  var adamString = song.artist + " - " + song.title;
+                  if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
@@ -723,8 +723,6 @@ var startSong = function(noPrevPlay) {
                 sartist = tracks[0].user.username;
               }
               if (sartist == "Unknown") sartist = tracks[0].user.username;
-              var adamString = sartist + " - " + stitle;
-              if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, data[nextSongkey].cid, data[nextSongkey].type);
               var thedate = new Date(tracks[0].created_at);
               var postedDate = thedate.getTime();
               var now = Date.now();
@@ -816,6 +814,8 @@ var startSong = function(noPrevPlay) {
                     type: song.type
                   };
                   queueRef.push(songBack);
+                  var adamString = song.artist + " - " + song.title;
+                  if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
