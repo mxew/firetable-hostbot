@@ -6,7 +6,7 @@
       ".read": true,
       "$comment": {
         ".read": true,
-        ".write": "(auth.uid != null && newData.child('chatID').exists() && ((!data.exists() || root.child('users/' + auth.uid + '/hostbot').val() == true || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
+        ".write": "(auth.uid != null && (newData.child('chatID').exists() || root.child('users/' + auth.uid + '/hostbot').val() == true)&& ((!data.exists() || root.child('users/' + auth.uid + '/hostbot').val() == true || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
         "chatID":{
           ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
         },
