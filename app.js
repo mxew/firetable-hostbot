@@ -241,6 +241,16 @@ var ytVideoCheck = function(result) {
   var isBroken = false;
   if (result.items[0].contentDetails) {
     if (result.items[0].contentDetails.regionRestriction) {
+      if (result.items[0].contentDetails.regionRestriction.allowed) {
+        if (result.items[0].contentDetails.regionRestriction.allowed.length) {
+          if (!result.items[0].contentDetails.regionRestriction.allowed.includes("US")) {
+            //blocked in US.... SKIP!
+            isBroken = true;
+          } else {
+            //not blocked in US...
+          }
+        }
+      }
       if (result.items[0].contentDetails.regionRestriction.blocked) {
         if (result.items[0].contentDetails.regionRestriction.blocked.length) {
           //there's some BLOCKED guys
