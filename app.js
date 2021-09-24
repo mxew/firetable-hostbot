@@ -706,139 +706,170 @@ var startSong = function(noPrevPlay) {
         });
 
       } else if (data[nextSongkey].type == 2) {
-        SC.get('/tracks?ids=' + data[nextSongkey].cid, function(err, tracks) {
-          console.log(tracks);
-          if (tracks) {
-            if (tracks.length) {
-              //exists!
-              console.log(tracks[0]);
-              var totalseconds = Math.floor(tracks[0].duration / 1000);
-              lastfm.duration = totalseconds;
-              lastfm.songStart = Math.floor((new Date()).getTime() / 1000);
-              if (songtimer != null) {
-                clearTimeout(songtimer);
-                songtimer = null;
-              }
-              songtimer = setTimeout(function() {
-                songtimer = null;
-                if (lastfm.key) lastfm.scrobble();
-              }, (totalseconds * 1000) - 3000);
-              var s2p = firebase.database().ref("songToPlay");
-              var yargo = data[nextSongkey].name.split(" - ");
-              var sartist = yargo[0];
-              var stitle = yargo[1];
+        /*
+begin sc check
+        */
+        request('https://api-widget.soundcloud.com/resolve?url=https%3A//api.soundcloud.com/tracks/' + data[nextSongkey].cid + '&format=json&client_id=LBCcHmRB8XSStWL6wKH2HPACspQlXg2P', function cbfunc(error, response, body) {
+          //If call returned correctly, continue
+          if (!error && response.statusCode == 200) {
+            var tracks = [JSON.parse(body)];
+            console.log(tracks);
+            if (tracks) {
+              if (tracks.length) {
+                //exists!
+                console.log(tracks[0]);
+                var totalseconds = Math.floor(tracks[0].duration / 1000);
+                lastfm.duration = totalseconds;
+                lastfm.songStart = Math.floor((new Date()).getTime() / 1000);
+                if (songtimer != null) {
+                  clearTimeout(songtimer);
+                  songtimer = null;
+                }
+                songtimer = setTimeout(function() {
+                  songtimer = null;
+                  if (lastfm.key) lastfm.scrobble();
+                }, (totalseconds * 1000) - 3000);
+                var s2p = firebase.database().ref("songToPlay");
+                var yargo = data[nextSongkey].name.split(" - ");
+                var sartist = yargo[0];
+                var stitle = yargo[1];
 
-              if (!stitle) {
-                stitle = sartist;
-                sartist = tracks[0].user.username;
-              }
-              if (sartist == "Unknown") sartist = tracks[0].user.username;
-              var thedate = new Date(tracks[0].created_at);
-              var postedDate = thedate.getTime();
-              var now = Date.now();
-              var songInfo = {
-                type: data[nextSongkey].type,
-                cid: data[nextSongkey].cid,
-                title: stitle,
-                started: now,
-                url: tracks[0].permalink_url,
-                duration: totalseconds,
-                artist: sartist,
-                image: tracks[0].artwork_url,
-                postedDate: postedDate,
-                djid: theDJ.id,
-                djname: theDJ.name,
-                key: nextSongkey
-              };
-              var colref = firebase.database().ref("colors");
-              var clrs = "#fff";
-              var textcol = "#fff";
-              var moreColors = {};
-              var colref = firebase.database().ref("colors");
-              if (!songInfo.image) {
-                songInfo.image = "img/idlogo.png";
-                var clrs1 = {
-                  color: clrs,
-                  txt: textcol
+                if (!stitle) {
+                  stitle = sartist;
+                  sartist = tracks[0].user.username;
+                }
+                if (sartist == "Unknown") sartist = tracks[0].user.username;
+                var thedate = new Date(tracks[0].created_at);
+                var postedDate = thedate.getTime();
+                var now = Date.now();
+                var songInfo = {
+                  type: data[nextSongkey].type,
+                  cid: data[nextSongkey].cid,
+                  title: stitle,
+                  started: now,
+                  url: tracks[0].permalink_url,
+                  duration: totalseconds,
+                  artist: sartist,
+                  image: tracks[0].artwork_url,
+                  postedDate: postedDate,
+                  djid: theDJ.id,
+                  djname: theDJ.name,
+                  key: nextSongkey
                 };
-                colref.set(clrs1);
-                colors = clrs1;
-              } else {
-                Vibrant.from(songInfo.image).getPalette(function(err, palette) {
-                  console.log(palette);
-                  if (palette.Vibrant) {
-                    clrs = palette.Vibrant.getHex();
-                    textcol = palette.Vibrant.getBodyTextColor();
-                  }
-                  if (palette.LightVibrant) {
-                    moreColors.lightVibrant = {
-                      color: palette.LightVibrant.getHex(),
-                      txt: palette.LightVibrant.getBodyTextColor()
-                    };
-                  }
-                  if (palette.DarkVibrant) {
-                    moreColors.darkVibrant = {
-                      color: palette.DarkVibrant.getHex(),
-                      txt: palette.DarkVibrant.getBodyTextColor()
-                    };
-                  }
-                  if (palette.Muted) {
-                    moreColors.muted = {
-                      color: palette.Muted.getHex(),
-                      txt: palette.Muted.getBodyTextColor()
-                    };
-                  }
-                  if (palette.LightMuted) {
-                    moreColors.lightMuted = {
-                      color: palette.LightMuted.getHex(),
-                      txt: palette.LightMuted.getBodyTextColor()
-                    };
-                  }
-                  if (palette.DarkMuted) {
-                    moreColors.darkMuted = {
-                      color: palette.DarkMuted.getHex(),
-                      txt: palette.DarkMuted.getBodyTextColor()
-                    };
-                  }
-                  var thecolors = {
+                var colref = firebase.database().ref("colors");
+                var clrs = "#fff";
+                var textcol = "#fff";
+                var moreColors = {};
+                var colref = firebase.database().ref("colors");
+                if (!songInfo.image) {
+                  songInfo.image = "img/idlogo.png";
+                  var clrs1 = {
                     color: clrs,
-                    txt: textcol,
-                    altColors: moreColors
+                    txt: textcol
                   };
-                  colref.set(thecolors);
-                  colors = thecolors;
-                });
-              }
-              song = songInfo;
-              s2p.set(songInfo);
-              if (lastfm.key) lastfm.nowPlaying();
+                  colref.set(clrs1);
+                  colors = clrs1;
+                } else {
+                  Vibrant.from(songInfo.image).getPalette(function(err, palette) {
+                    console.log(palette);
+                    if (palette.Vibrant) {
+                      clrs = palette.Vibrant.getHex();
+                      textcol = palette.Vibrant.getBodyTextColor();
+                    }
+                    if (palette.LightVibrant) {
+                      moreColors.lightVibrant = {
+                        color: palette.LightVibrant.getHex(),
+                        txt: palette.LightVibrant.getBodyTextColor()
+                      };
+                    }
+                    if (palette.DarkVibrant) {
+                      moreColors.darkVibrant = {
+                        color: palette.DarkVibrant.getHex(),
+                        txt: palette.DarkVibrant.getBodyTextColor()
+                      };
+                    }
+                    if (palette.Muted) {
+                      moreColors.muted = {
+                        color: palette.Muted.getHex(),
+                        txt: palette.Muted.getBodyTextColor()
+                      };
+                    }
+                    if (palette.LightMuted) {
+                      moreColors.lightMuted = {
+                        color: palette.LightMuted.getHex(),
+                        txt: palette.LightMuted.getBodyTextColor()
+                      };
+                    }
+                    if (palette.DarkMuted) {
+                      moreColors.darkMuted = {
+                        color: palette.DarkMuted.getHex(),
+                        txt: palette.DarkMuted.getBodyTextColor()
+                      };
+                    }
+                    var thecolors = {
+                      color: clrs,
+                      txt: textcol,
+                      altColors: moreColors
+                    };
+                    colref.set(thecolors);
+                    colors = thecolors;
+                  });
+                }
+                song = songInfo;
+                s2p.set(songInfo);
+                if (lastfm.key) lastfm.nowPlaying();
 
-              var removeThis = queueRef.child(song.key);
-              removeThis.remove()
-                .then(function() {
-                  console.log("song remove went great.");
-                  var sname = song.artist + " - " + song.title;
-                  var songBack = {
-                    cid: song.cid,
-                    name: sname,
-                    type: song.type
-                  };
-                  queueRef.push(songBack);
-                  var adamString = song.artist + " - " + song.title;
-                  if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
-                })
-                .catch(function(error) {
-                  console.log("Song Remove failed: " + error.message);
-                });
-              // set the timeout to move forward at end of song
-              if (songTimeout != null) {
-                clearTimeout(songTimeout);
-                songTimeout = null;
+                var removeThis = queueRef.child(song.key);
+                removeThis.remove()
+                  .then(function() {
+                    console.log("song remove went great.");
+                    var sname = song.artist + " - " + song.title;
+                    var songBack = {
+                      cid: song.cid,
+                      name: sname,
+                      type: song.type
+                    };
+                    queueRef.push(songBack);
+                    var adamString = song.artist + " - " + song.title;
+                    if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
+                  })
+                  .catch(function(error) {
+                    console.log("Song Remove failed: " + error.message);
+                  });
+                // set the timeout to move forward at end of song
+                if (songTimeout != null) {
+                  clearTimeout(songTimeout);
+                  songTimeout = null;
+                }
+                songTimeout = setTimeout(function() {
+                  songTimeout = null;
+                  nextSong(); //NEEEEEEXT
+                }, totalseconds * 1000);
+              } else {
+                //does not exist
+                var removeThis = queueRef.child(nextSongkey);
+                removeThis.remove()
+                  .then(function() {
+                    console.log("song remove went great.");
+                    var songBack = {
+                      cid: data[nextSongkey].cid,
+                      name: data[nextSongkey].name,
+                      type: data[nextSongkey].type,
+                      flagged: {
+                        date: Date.now(),
+                        code: 4
+                      }
+                    };
+                    queueRef.push(songBack);
+                  })
+                  .catch(function(error) {
+                    console.log("Song Remove failed: " + error.message);
+                  });
+                talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+                setTimeout(function() {
+                  startSong(true); //try again with SAME DJ
+                }, 3000);
               }
-              songTimeout = setTimeout(function() {
-                songTimeout = null;
-                nextSong(); //NEEEEEEXT
-              }, totalseconds * 1000);
             } else {
               //does not exist
               var removeThis = queueRef.child(nextSongkey);
@@ -851,7 +882,7 @@ var startSong = function(noPrevPlay) {
                     type: data[nextSongkey].type,
                     flagged: {
                       date: Date.now(),
-                      code: 4
+                      code: 5
                     }
                   };
                   queueRef.push(songBack);
@@ -865,6 +896,7 @@ var startSong = function(noPrevPlay) {
               }, 3000);
             }
           } else {
+            // ERROR
             //does not exist
             var removeThis = queueRef.child(nextSongkey);
             removeThis.remove()
@@ -884,12 +916,15 @@ var startSong = function(noPrevPlay) {
               .catch(function(error) {
                 console.log("Song Remove failed: " + error.message);
               });
-            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... There might also be a Soundcloud api issue right now...");
             setTimeout(function() {
               startSong(true); //try again with SAME DJ
             }, 3000);
           }
         });
+        /*
+end sc check
+        */
       }
 
     } else {
@@ -1571,7 +1606,7 @@ var adam = {
                   for (var key in data) {
                     if (data[key].type == song.type) {
                       newData = data[key];
-                      newData.name = song.artist + " - " +song.title;
+                      newData.name = song.artist + " - " + song.title;
                       queueRef.child(key).set(newData);
                     }
                   }
