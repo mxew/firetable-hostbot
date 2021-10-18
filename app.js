@@ -730,7 +730,7 @@ begin sc check
                   if (lastfm.key) lastfm.scrobble();
                 }, (totalseconds * 1000) - 3000);
                 var s2p = firebase.database().ref("songToPlay");
-                var yargo = data[nextSongkey].name.split(" - ");
+                var yargo = data[nextSongkey].name.toString().split(" - ");
                 var sartist = yargo[0];
                 var stitle = yargo[1];
 
