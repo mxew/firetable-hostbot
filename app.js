@@ -734,6 +734,12 @@ begin sc check
                 var sartist = yargo[0];
                 var stitle = yargo[1];
 
+                if (sartist == "Unknown" && !stitle) {
+                  var cutetags = tracks[0].title.toString().split(" - ");
+                  var sartist = cutetags[0];
+                  var stitle = cutetags[1];
+                }
+
                 if (!stitle) {
                   stitle = sartist;
                   sartist = tracks[0].user.username;
