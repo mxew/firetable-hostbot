@@ -46,6 +46,9 @@ var configs = {
 };
 firebase.initializeApp(configs);
 
+var avatarset = "set1";
+if (process.env.AVATARSET) avatarset = process.env.AVATARSET;
+
 firebase.auth().onAuthStateChanged(function(user) {
   if (user) {
     botid = user.uid;
@@ -983,6 +986,7 @@ var printCard = function(userid) {
       title: song.title,
       artist: song.artist,
       image: song.image,
+      set: avatarset,
       date: now,
       special: cardSpecial,
       owner: false
