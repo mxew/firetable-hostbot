@@ -30,6 +30,8 @@ var robotsDancing = false;
 var cardGiftedThisSong = false;
 var table = [];
 var playlimit = 2;
+var thingcopy;
+var tagFixData = null;
 ignoreChats = true;
 var song = null;
 var playDex = 0; //where does the spotlight go? (tracks SEATS not people)
@@ -477,7 +479,7 @@ var startSong = function(noPrevPlay) {
               .catch(function(error) {
                 console.log("Song Remove failed: " + error.message);
               });
-            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+            if (theDJ.id !== botid) talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
             setTimeout(function() {
               startSong(true); //try again with SAME DJ
             }, 3000);
@@ -502,7 +504,7 @@ var startSong = function(noPrevPlay) {
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              if (theDJ.id !== botid) talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -629,7 +631,7 @@ var startSong = function(noPrevPlay) {
                 colors = clrs1;
               } else {
                 Vibrant.from(songInfo.image).getPalette(function(err, palette) {
-                  console.log(palette);
+                  // console.log(palette);
                   if (palette.Vibrant) {
                     clrs = palette.Vibrant.getHex();
                     textcol = palette.Vibrant.getBodyTextColor();
@@ -689,8 +691,7 @@ var startSong = function(noPrevPlay) {
                     type: song.type
                   };
                   queueRef.push(songBack);
-                  var adamString = song.artist + " - " + song.title;
-                  if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
+                  gts.np();
                 })
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
@@ -839,8 +840,7 @@ begin sc check
                       type: song.type
                     };
                     queueRef.push(songBack);
-                    var adamString = song.artist + " - " + song.title;
-                    if (process.env.ADAM_URL) adam.np(adamString, theDJ.name, song.cid, song.type);
+                    gts.np();
                   })
                   .catch(function(error) {
                     console.log("Song Remove failed: " + error.message);
@@ -874,7 +874,7 @@ begin sc check
                   .catch(function(error) {
                     console.log("Song Remove failed: " + error.message);
                   });
-                talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+                if (theDJ.id !== botid) talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
                 setTimeout(function() {
                   startSong(true); //try again with SAME DJ
                 }, 3000);
@@ -899,7 +899,7 @@ begin sc check
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
+              if (theDJ.id !== botid) talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... Clean up your queue please thanks.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -925,7 +925,7 @@ begin sc check
               .catch(function(error) {
                 console.log("Song Remove failed: " + error.message);
               });
-            talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... There might also be a Soundcloud api issue right now...");
+            if (theDJ.id !== botid) talk("@" + theDJ.name + " you tried to play a broken song. Letting you play whatever is next in your queue instead... There might also be a Soundcloud api issue right now...");
             setTimeout(function() {
               startSong(true); //try again with SAME DJ
             }, 3000);
@@ -1546,6 +1546,123 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
   }
 });
 
+// GLOBAL TAG SYSTEM
+var gts = {
+  np: function() {
+    var globalpeek = firebase.database().ref("globalTracks/" + song.type + "" + song.cid);
+    globalpeek.once("value")
+      .then(function(snapshot) {
+        var thing = snapshot.val();
+        console.log("THING START", thing);
+        if (thing) {
+          // NOT FIRST... LET'S MANAGE THAT
+          gts.reportNp(thing);
+          //update lp
+          var thing2 = thing;
+          thing2.last_play_date = Date.now();
+          thing2.last_play_dj = song.djname;
+          globalpeek.set(thing2);
+        } else {
+          // FIRST PLAY
+          gts.reportNp({
+            artist: song.artist,
+            title: song.title,
+            type: song.type
+          });
+
+          globalpeek.set({
+            artist: song.artist,
+            title: song.title,
+            last_play_date: Date.now(),
+            first_play_date: Date.now(),
+            last_play_dj: song.djname,
+            first_play_dj: song.djname,
+            type: song.type
+          });
+        }
+      });
+  },
+  reportNp: function(adm) {
+    console.log("thing 3", adm);
+    if (adm) {
+      if (adm.title) {
+        //if no track name, adam tags bad... dont use.
+        if (adm.artist) {
+          if (adm.artist !== "Unknown") {
+            song.artist = adm.artist;
+            song.title = adm.title;
+          } else {
+            // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
+            //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+          }
+        }
+      } else {
+        //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
+        //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+      }
+
+
+      tagFixData = {
+        adamData: {
+          artist: song.artist,
+          track_name: song.title
+        },
+        cid: song.cid
+      };
+      if (adm.last_play_dj) tagFixData.adamData.last_play_dj = adm.last_play_dj;
+      if (adm.last_play_date) tagFixData.adamData.last_play = new Date(adm.last_play_date).toISOString();
+      if (adm.first_play_dj) tagFixData.adamData.first_play_dj = adm.first_play_dj;
+      if (adm.first_play_date) tagFixData.adamData.first_play = new Date(adm.first_play_date).toISOString();
+
+      request('https://ws.audioscrobbler.com/2.0/?method=track.getInfo&track='+encodeURIComponent(adm.title)+'&artist='+encodeURIComponent(adm.artist)+'&username='+process.env.LASTFM_USERNAME+'&api_key='+process.env.LASTFM_APIKEY+'&format=json', function cbfunc(error, response, body) {
+        //If call returned correctly, continue
+        var playcount = false;
+        console.log("thing 4", tagFixData);
+
+        if (!error && response.statusCode == 200) {
+          var lfm = [JSON.parse(body)];
+          try {
+            if (lfm[0].track.userplaycount) {
+              playcount = parseInt(lfm[0].track.userplaycount);
+            } else {
+
+            }
+          } catch (e) {
+            console.log(e);
+
+          }
+        }
+
+        var tagUpdate = firebase.database().ref("tagUpdate");
+        if (playcount) {
+          tagFixData.adamData.playcount = playcount;
+          song.playcount = playcount;
+        }
+        // send tag update to clients
+        tagUpdate.set(tagFixData);
+
+      });
+
+
+      // update the dj's playlist with updated tags
+      queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+        .then(function(snapshot) {
+          var data = snapshot.val();
+          if (data) {
+            for (var key in data) {
+              if (data[key].type == song.type) {
+                newData = data[key];
+                newData.name = song.artist + " - " + song.title;
+                queueRef.child(key).set(newData);
+              }
+            }
+          }
+        });
+    }
+
+  }
+}
+/*
 var adam = {
   np: function(song_name, dj, link, source) {
     if (!process.env.ADAM_URL) return;
@@ -1667,6 +1784,8 @@ var adam = {
   }
 };
 
+*/
+
 var lastfm = {
   sk: process.env.LASTFM_SESSIONKEY, //for last.fm user tt_discotheque
   key: process.env.LASTFM_APIKEY,
@@ -1698,7 +1817,7 @@ var lastfm = {
 
     request(options, function(err1, res1, body1) {
       if (err1) console.log(err1);
-      console.log(body1);
+      //console.log(body1);
     });
   },
   love: function() {
@@ -1724,7 +1843,7 @@ var lastfm = {
 
     request(options, function(err1, res1, body1) {
       if (err1) console.log(err1);
-      console.log(body1);
+      // console.log(body1);
     });
 
   },
@@ -1759,7 +1878,7 @@ var lastfm = {
 
     request(options, function(err1, res1, body1) {
       if (err1) console.log(err1);
-      console.log(body1);
+      // console.log(body1);
     });
 
   },
