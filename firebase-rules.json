@@ -58,6 +58,22 @@
       ".read": true,
       ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
     },
+    "globalArtists": {
+      ".read": true,
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
+    },
+    "globalTracks": {
+      ".read": true,
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
+    },
+    "globalTrackRaws": {
+      ".read": true,
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
+    },
+    "globalDjs": {
+      ".read": true,
+      ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true"
+    },
     "cards": {
       ".read": true,
       ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true",
