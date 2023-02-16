@@ -527,7 +527,7 @@ var startSong = function(noPrevPlay) {
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
+              if (theDJ.id !== botid) if (theDJ.id !== botid) talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -550,7 +550,7 @@ var startSong = function(noPrevPlay) {
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is age restricted and can't be played outside of Youtube.com. Letting you play whatever is next in your queue instead.");
+              if (theDJ.id !== botid) talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is age restricted and can't be played outside of Youtube.com. Letting you play whatever is next in your queue instead.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
