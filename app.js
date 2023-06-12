@@ -424,6 +424,46 @@ var startSong = function(noPrevPlay) {
     colref.set(thecolors);
     colors = thecolors;
     updateThings();
+    if (process.env.AUTODJ) {
+      var namebo2 = botid;
+      if (users[botid]) {
+        if (users[botid].username) namebo2 = users[botid].username;
+      }
+      var check = addCheck(botid);
+      if (!check) {
+        var pson = {
+          name: namebo2,
+          id: botid,
+          plays: 0
+        };
+        if (table.length >= 4) {
+          // table full. time to be on the waitlist now k
+          queue.push(pson);
+          talk(namebo2 + " (that's me) added to waitlist. Length is now " + queue.length);
+          updateWaitlist();
+          updateLimit();
+        } else {
+          //table has room. add to table directly
+          if (table.length == 0) {
+            table.push(pson);
+            console.log(table);
+            playDex = 0;
+            startSong();
+          } else {
+            table.push(pson);
+            console.log(table);
+            updateTable();
+            updateLimit();
+          }
+        }
+      } else {
+        if (check == 1) {
+          talk("I am already in the waitlist.");
+        } else if (check == 2) {
+          talk("I am already on deck.");
+        }
+      }
+    }
     return false;
   };
   maxindex = table.length - 1;
@@ -527,7 +567,8 @@ var startSong = function(noPrevPlay) {
                 .catch(function(error) {
                   console.log("Song Remove failed: " + error.message);
                 });
-              if (theDJ.id !== botid) if (theDJ.id !== botid) talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
+              if (theDJ.id !== botid)
+                if (theDJ.id !== botid) talk("Hey @" + theDJ.name + ", looks like https://www.youtube.com/watch?v=" + data[nextSongkey].cid + " is blocked in the US. Letting you play whatever is next in your queue instead.");
               setTimeout(function() {
                 startSong(true); //try again with SAME DJ
               }, 3000);
@@ -1208,6 +1249,37 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
               id: chatData.id,
               plays: 0
             };
+
+            if (process.env.AUTODJ) {
+              if (addCheck(botid)) {
+                if (addCheck(botid) == 1) {
+                  //user in waitlist
+                  for (var i = 0; i < queue.length; i++) {
+                    if (queue[i].id == botid) {
+                      queue[i].removeAfter = true;
+                      updateWaitlist();
+                      break;
+                    }
+                  }
+                } else if (addCheck(botid) == 2) {
+                  //user on deck
+                  if (botid == theDJ.id) {
+                    // user is current dj
+                    theDJ.removeAfter = true;
+                  } else {
+                    // user is not current dj
+                  }
+                  for (var i = 0; i < table.length; i++) {
+                    if (table[i].id == botid) {
+                      table[i].removeAfter = true
+                      updateTable();
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+
             if (table.length >= 4) {
               // table full. time to be on the waitlist now k
               queue.push(pson);
@@ -1470,6 +1542,37 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                   id: prsnToAdd,
                   plays: 0
                 };
+
+                if (process.env.AUTODJ) {
+                  if (addCheck(botid)) {
+                    if (addCheck(botid) == 1) {
+                      //user in waitlist
+                      for (var i = 0; i < queue.length; i++) {
+                        if (queue[i].id == botid) {
+                          queue[i].removeAfter = true;
+                          updateWaitlist();
+                          break;
+                        }
+                      }
+                    } else if (addCheck(botid) == 2) {
+                      //user on deck
+                      if (botid == theDJ.id) {
+                        // user is current dj
+                        theDJ.removeAfter = true;
+                      } else {
+                        // user is not current dj
+                      }
+                      for (var i = 0; i < table.length; i++) {
+                        if (table[i].id == botid) {
+                          table[i].removeAfter = true
+                          updateTable();
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+
                 if (table.length >= 4) {
                   // table full. time to be on the waitlist now k
                   queue.push(pson);
@@ -1548,222 +1651,140 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
 
 // GLOBAL TAG SYSTEM
 var gts = {
-  np: function() {
-    var globalpeek = firebase.database().ref("globalTracks/" + song.type + "" + song.cid);
-    globalpeek.once("value")
-      .then(function(snapshot) {
-        var thing = snapshot.val();
-        console.log("THING START", thing);
-        if (thing) {
-          // NOT FIRST... LET'S MANAGE THAT
-          gts.reportNp(thing);
-          //update lp
-          var thing2 = thing;
-          thing2.last_play_date = Date.now();
-          thing2.last_play_dj = song.djname;
-          globalpeek.set(thing2);
-        } else {
-          // FIRST PLAY
-          gts.reportNp({
-            artist: song.artist,
-            title: song.title,
-            type: song.type
-          });
-
-          globalpeek.set({
-            artist: song.artist,
-            title: song.title,
-            last_play_date: Date.now(),
-            first_play_date: Date.now(),
-            last_play_dj: song.djname,
-            first_play_dj: song.djname,
-            type: song.type
-          });
-        }
-      });
-  },
-  reportNp: function(adm) {
-    console.log("thing 3", adm);
-    if (adm) {
-      if (adm.title) {
-        //if no track name, adam tags bad... dont use.
-        if (adm.artist) {
-          if (adm.artist !== "Unknown") {
-            song.artist = adm.artist;
-            song.title = adm.title;
-          } else {
-            // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
-            //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
-          }
-        }
-      } else {
-        //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
-        //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
-      }
-
-
-      tagFixData = {
-        adamData: {
-          artist: song.artist,
-          track_name: song.title
-        },
-        cid: song.cid
-      };
-      if (adm.last_play_dj) tagFixData.adamData.last_play_dj = adm.last_play_dj;
-      if (adm.last_play_date) tagFixData.adamData.last_play = new Date(adm.last_play_date).toISOString();
-      if (adm.first_play_dj) tagFixData.adamData.first_play_dj = adm.first_play_dj;
-      if (adm.first_play_date) tagFixData.adamData.first_play = new Date(adm.first_play_date).toISOString();
-
-      request('https://ws.audioscrobbler.com/2.0/?method=track.getInfo&track='+encodeURIComponent(adm.title)+'&artist='+encodeURIComponent(adm.artist)+'&username='+process.env.LASTFM_USERNAME+'&api_key='+process.env.LASTFM_APIKEY+'&format=json', function cbfunc(error, response, body) {
-        //If call returned correctly, continue
-        var playcount = false;
-        console.log("thing 4", tagFixData);
-
-        if (!error && response.statusCode == 200) {
-          var lfm = [JSON.parse(body)];
-          try {
-            if (lfm[0].track.userplaycount) {
-              playcount = parseInt(lfm[0].track.userplaycount);
-            } else {
-
-            }
-          } catch (e) {
-            console.log(e);
-
-          }
-        }
-
-        var tagUpdate = firebase.database().ref("tagUpdate");
-        if (playcount) {
-          tagFixData.adamData.playcount = playcount;
-          song.playcount = playcount;
-        }
-        // send tag update to clients
-        tagUpdate.set(tagFixData);
-
-      });
-
-
-      // update the dj's playlist with updated tags
-      queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+    np: function() {
+      var globalpeek = firebase.database().ref("globalTracks/" + song.type + "" + song.cid);
+      globalpeek.once("value")
         .then(function(snapshot) {
-          var data = snapshot.val();
-          if (data) {
-            for (var key in data) {
-              if (data[key].type == song.type) {
-                newData = data[key];
-                newData.name = song.artist + " - " + song.title;
-                queueRef.child(key).set(newData);
-              }
-            }
+          var thing = snapshot.val();
+          console.log("THING START", thing);
+          if (thing) {
+            // NOT FIRST... LET'S MANAGE THAT
+            gts.reportNp(thing);
+            //update lp
+            var thing2 = thing;
+            thing2.last_play_date = Date.now();
+            thing2.last_play_dj = song.djname;
+            globalpeek.set(thing2);
+          } else {
+            // FIRST PLAY
+            gts.reportNp({
+              artist: song.artist,
+              title: song.title,
+              type: song.type
+            });
+
+            globalpeek.set({
+              artist: song.artist,
+              title: song.title,
+              last_play_date: Date.now(),
+              first_play_date: Date.now(),
+              last_play_dj: song.djname,
+              first_play_dj: song.djname,
+              type: song.type
+            });
           }
         });
-    }
+    },
+    reportNp: function(adm) {
+      console.log("thing 3", adm);
+      if (adm) {
+        if (adm.title) {
+          //if no track name, adam tags bad... dont use.
+          if (adm.artist) {
+            if (adm.artist !== "Unknown") {
+              song.artist = adm.artist;
+              song.title = adm.title;
+            } else {
+              // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
+              //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+            }
+          }
+        } else {
+          //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
+          //adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+        }
 
-  }
-}
-/*
-var adam = {
-  np: function(song_name, dj, link, source) {
-    if (!process.env.ADAM_URL) return;
-    var thesource = "youtube";
-    if (source == 2) {
-      thesource = "soundcloud"
-    }
-    var adam_data = {
-      data: {
-        song_name: song_name,
-        dj: dj,
-        link: link,
-        source: thesource
-      }
-    };
-    // try posting to ADAM
-    var options = {
-      method: "POST",
-      url: process.env.ADAM_URL + "/new_song",
-      headers: {
-        "Content-Type": "text/html;charset=utf-8"
-      },
-      form: adam_data
-    };
 
-    request(options, function(err1, res1, body1) {
-      if (err1) console.log(err1);
-      console.log(body1);
-      if (body1) {
-        try {
-          var adm = JSON.parse(body1);
-          adam_last = adm;
+        tagFixData = {
+          adamData: {
+            artist: song.artist,
+            track_name: song.title
+          },
+          cid: song.cid
+        };
+        if (adm.last_play_dj) tagFixData.adamData.last_play_dj = adm.last_play_dj;
+        if (adm.last_play_date) tagFixData.adamData.last_play = new Date(adm.last_play_date).toISOString();
+        if (adm.first_play_dj) tagFixData.adamData.first_play_dj = adm.first_play_dj;
+        if (adm.first_play_date) tagFixData.adamData.first_play = new Date(adm.first_play_date).toISOString();
 
-          console.log(adm);
-          if (adm) {
-            if (adm.track_name) {
-              //if no track name, adam tags bad... dont use.
-              if (adm.artist) {
-                if (adm.artist !== "Unknown") {
-                  song.artist = adm.artist;
-                  song.title = adm.track_name;
-                } else {
-                  // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
-                  adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+        request('https://ws.audioscrobbler.com/2.0/?method=track.getInfo&track=' + encodeURIComponent(adm.title) + '&artist=' + encodeURIComponent(adm.artist) + '&username=' + process.env.LASTFM_USERNAME + '&api_key=' + process.env.LASTFM_APIKEY + '&format=json', function cbfunc(error, response, body) {
+          //If call returned correctly, continue
+          var playcount = false;
+          console.log("thing 4", tagFixData);
+
+          if (!error && response.statusCode == 200) {
+            var lfm = [JSON.parse(body)];
+            try {
+              if (lfm[0].track.userplaycount) {
+                playcount = parseInt(lfm[0].track.userplaycount);
+              } else {
+
+              }
+            } catch (e) {
+              console.log(e);
+
+            }
+          }
+
+          var tagUpdate = firebase.database().ref("tagUpdate");
+          if (playcount) {
+            tagFixData.adamData.playcount = playcount;
+            song.playcount = playcount;
+          }
+          // send tag update to clients
+          tagUpdate.set(tagFixData);
+
+        });
+
+
+        // update the dj's playlist with updated tags
+        queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+          .then(function(snapshot) {
+            var data = snapshot.val();
+            if (data) {
+              for (var key in data) {
+                if (data[key].type == song.type) {
+                  newData = data[key];
+                  newData.name = song.artist + " - " + song.title;
+                  queueRef.child(key).set(newData);
                 }
               }
-            } else {
-              //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
-              adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
             }
-
-            if (adm.track_id) song.adamid = adm.track_id;
-            if (adm.playcount) song.playcount = adm.playcount;
-            var tagUpdate = firebase.database().ref("tagUpdate");
-            var tagFixData = {
-              adamData: adm,
-              cid: song.cid
-            };
-
-            // send tag update to clients
-            tagUpdate.set(tagFixData);
-
-            // update the dj's playlist with updated tags
-            queueRef.orderByChild('cid').equalTo(song.cid).once("value")
-              .then(function(snapshot) {
-                var data = snapshot.val();
-                if (data) {
-                  for (var key in data) {
-                    if (data[key].type == song.type) {
-                      newData = data[key];
-                      newData.name = song.artist + " - " + song.title;
-                      queueRef.child(key).set(newData);
-                    }
-                  }
-                }
-              });
-          }
-        } catch (e) {
-          console.log(e);
-        }
+          });
       }
-    });
-  },
-  fix_tags: function(adamid, args) {
-    var song_data = args.split(' - ')
-    if (song_data.length < 2) {
-      //bad format
-    } else {
-      var artist0 = song_data[0].replace(/&amp;/g, '&');
-      var title0 = song_data[1].replace(/&amp;/g, '&');
 
+    }
+  }
+  /*
+  var adam = {
+    np: function(song_name, dj, link, source) {
+      if (!process.env.ADAM_URL) return;
+      var thesource = "youtube";
+      if (source == 2) {
+        thesource = "soundcloud"
+      }
       var adam_data = {
         data: {
-          artist: artist0,
-          title: title0,
-          track_id: adamid
+          song_name: song_name,
+          dj: dj,
+          link: link,
+          source: thesource
         }
       };
+      // try posting to ADAM
       var options = {
         method: "POST",
-        url: "https://adam-indie-discotheque.herokuapp.com//fix_tags",
+        url: process.env.ADAM_URL + "/new_song",
         headers: {
           "Content-Type": "text/html;charset=utf-8"
         },
@@ -1774,17 +1795,99 @@ var adam = {
         if (err1) console.log(err1);
         console.log(body1);
         if (body1) {
-          var adm = JSON.parse(body1);
-          console.log("good tag fix");
+          try {
+            var adm = JSON.parse(body1);
+            adam_last = adm;
+
+            console.log(adm);
+            if (adm) {
+              if (adm.track_name) {
+                //if no track name, adam tags bad... dont use.
+                if (adm.artist) {
+                  if (adm.artist !== "Unknown") {
+                    song.artist = adm.artist;
+                    song.title = adm.track_name;
+                  } else {
+                    // if ADAM thinks the artist's name is UNKNOWN, overwrite with whatever hostbot came up with
+                    adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+                  }
+                }
+              } else {
+                //NO TRACK NAME... if we have enough data, let's tell ADAM what we know
+                adam.fix_tags(adm.track_id, song.artist + " - " + song.title);
+              }
+
+              if (adm.track_id) song.adamid = adm.track_id;
+              if (adm.playcount) song.playcount = adm.playcount;
+              var tagUpdate = firebase.database().ref("tagUpdate");
+              var tagFixData = {
+                adamData: adm,
+                cid: song.cid
+              };
+
+              // send tag update to clients
+              tagUpdate.set(tagFixData);
+
+              // update the dj's playlist with updated tags
+              queueRef.orderByChild('cid').equalTo(song.cid).once("value")
+                .then(function(snapshot) {
+                  var data = snapshot.val();
+                  if (data) {
+                    for (var key in data) {
+                      if (data[key].type == song.type) {
+                        newData = data[key];
+                        newData.name = song.artist + " - " + song.title;
+                        queueRef.child(key).set(newData);
+                      }
+                    }
+                  }
+                });
+            }
+          } catch (e) {
+            console.log(e);
+          }
         }
       });
+    },
+    fix_tags: function(adamid, args) {
+      var song_data = args.split(' - ')
+      if (song_data.length < 2) {
+        //bad format
+      } else {
+        var artist0 = song_data[0].replace(/&amp;/g, '&');
+        var title0 = song_data[1].replace(/&amp;/g, '&');
+
+        var adam_data = {
+          data: {
+            artist: artist0,
+            title: title0,
+            track_id: adamid
+          }
+        };
+        var options = {
+          method: "POST",
+          url: "https://adam-indie-discotheque.herokuapp.com//fix_tags",
+          headers: {
+            "Content-Type": "text/html;charset=utf-8"
+          },
+          form: adam_data
+        };
+
+        request(options, function(err1, res1, body1) {
+          if (err1) console.log(err1);
+          console.log(body1);
+          if (body1) {
+            var adm = JSON.parse(body1);
+            console.log("good tag fix");
+          }
+        });
 
 
+      }
     }
-  }
-};
+  };
 
-*/
+  */
 
 var lastfm = {
   sk: process.env.LASTFM_SESSIONKEY, //for last.fm user tt_discotheque

@@ -7,12 +7,12 @@
       "$comment": {
         ".read": true,
         ".write": "(auth.uid != null && (newData.child('chatID').exists() || root.child('users/' + auth.uid + '/hostbot').val() == true)&& ((!data.exists() || root.child('users/' + auth.uid + '/hostbot').val() == true || newData.child('hidden').val() == true) && root.child('banned/' + auth.uid).val() != true))",
-        "chatID":{
+        "chatID": {
           ".validate": "root.child('chatData/' + newData.val() ).exists() && !root.child('chatData/' + newData.val()+ '/feedID').exists()"
         },
-        "hidden":{
-             ".validate": "(auth.uid != null && (root.child('users/' + auth.uid + '/supermod').val() == true || root.child('users/' + auth.uid + '/mod').val() == true))"
-          }
+        "hidden": {
+          ".validate": "(auth.uid != null && (root.child('users/' + auth.uid + '/supermod').val() == true || root.child('users/' + auth.uid + '/mod').val() == true))"
+        }
       }
     },
     "chatData": {
@@ -117,20 +117,20 @@
         ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
         ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
         "$listid": {
-          "list":{
+          "list": {
             ".indexOn": "cid"
           }
         }
       }
     },
-  	"blocks": {
+    "blocks": {
       ".read": false,
-     	"$uid": {
-        	".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
-        	".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
-            "$blockedID":{
-              ".validate": "root.child('users/'+ $blockedID + '/mod').val() !== true && root.child('users/'+ $blockedID + '/supermod').val() !== true && root.child('users/'+ $blockedID + '/hostbot').val() !== true"
-            }
+      "$uid": {
+        ".read": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        ".write": "($uid == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true) && root.child('banned/' + auth.uid).val() != true",
+        "$blockedID": {
+          ".validate": "root.child('users/'+ $blockedID + '/mod').val() !== true && root.child('users/'+ $blockedID + '/supermod').val() !== true && root.child('users/'+ $blockedID + '/hostbot').val() !== true"
+        }
       }
     },
     "table": {
@@ -169,9 +169,9 @@
         },
         "idle": {
           ".write": "auth.uid == $uid && (root.child('banned/' + auth.uid).val() != true)",
-            "since": {
-                ".validate": "newData.val() == now"
-            }
+          "since": {
+            ".validate": "newData.val() == now"
+          }
         },
         "joined": {
           ".write": "auth.uid == $uid",
