@@ -364,8 +364,8 @@ var startSong = function(noPrevPlay) {
             allRecents.push(okey);
           }
         }
-        if (allRecents.length > 150) {
-          var shave = allRecents.length - 150;
+        if (allRecents.length > 500) {
+          var shave = allRecents.length - 500;
           for (var ayy = 0; ayy < shave; ayy++) {
             recentz.child(allRecents[ayy]).remove();
           }
