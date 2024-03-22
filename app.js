@@ -1250,8 +1250,29 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
               plays: 0
             };
 
+            if (table.length >= 4) {
+              // table full. time to be on the waitlist now k
+              queue.push(pson);
+              talk(namebo + " added to waitlist. Length is now " + queue.length);
+              updateWaitlist();
+              updateLimit();
+            } else {
+              //table has room. add to table directly
+              if (table.length == 0) {
+                table.push(pson);
+                console.log(table);
+                playDex = 0;
+                startSong();
+              } else {
+                table.push(pson);
+                console.log(table);
+                updateTable();
+                updateLimit();
+              }
+            }
+
             if (process.env.AUTODJ) {
-              if (addCheck(botid)) {
+              if (addCheck(botid) && table.length > 3) {
                 if (addCheck(botid) == 1) {
                   //user in waitlist
                   for (var i = 0; i < queue.length; i++) {
@@ -1280,26 +1301,6 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
               }
             }
 
-            if (table.length >= 4) {
-              // table full. time to be on the waitlist now k
-              queue.push(pson);
-              talk(namebo + " added to waitlist. Length is now " + queue.length);
-              updateWaitlist();
-              updateLimit();
-            } else {
-              //table has room. add to table directly
-              if (table.length == 0) {
-                table.push(pson);
-                console.log(table);
-                playDex = 0;
-                startSong();
-              } else {
-                table.push(pson);
-                console.log(table);
-                updateTable();
-                updateLimit();
-              }
-            }
           } else {
             if (check == 1) {
               talk("You are already in the waitlist.");
@@ -1543,8 +1544,29 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                   plays: 0
                 };
 
+                if (table.length >= 4) {
+                  // table full. time to be on the waitlist now k
+                  queue.push(pson);
+                  talk(users[prsnToAdd].username + " added to waitlist. Length is now " + queue.length);
+                  updateWaitlist();
+                  updateLimit();
+                } else {
+                  //table has room. add to table directly
+                  if (table.length == 0) {
+                    table.push(pson);
+                    console.log(table);
+                    playDex = 0;
+                    startSong();
+                  } else {
+                    table.push(pson);
+                    console.log(table);
+                    updateTable();
+                    updateLimit();
+                  }
+                }
+
                 if (process.env.AUTODJ) {
-                  if (addCheck(botid)) {
+                  if (addCheck(botid) && table.length > 3) {
                     if (addCheck(botid) == 1) {
                       //user in waitlist
                       for (var i = 0; i < queue.length; i++) {
@@ -1573,26 +1595,6 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
                   }
                 }
 
-                if (table.length >= 4) {
-                  // table full. time to be on the waitlist now k
-                  queue.push(pson);
-                  talk(users[prsnToAdd].username + " added to waitlist. Length is now " + queue.length);
-                  updateWaitlist();
-                  updateLimit();
-                } else {
-                  //table has room. add to table directly
-                  if (table.length == 0) {
-                    table.push(pson);
-                    console.log(table);
-                    playDex = 0;
-                    startSong();
-                  } else {
-                    table.push(pson);
-                    console.log(table);
-                    updateTable();
-                    updateLimit();
-                  }
-                }
               } else {
                 if (check == 1) {
                   talk(users[prsnToAdd].username + " is already in the waitlist.");
