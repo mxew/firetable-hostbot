@@ -6,12 +6,9 @@ var firebase = require('firebase');
 var YouTube = require('youtube-node');
 var Vibrant = require('node-vibrant');
 var youTube = new YouTube();
-var SC = require('node-soundcloud')
 
 youTube.setKey(process.env.YOUTUBE_KEY);
-SC.init({
-  id: process.env.SOUNDCLOUD_KEY,
-});
+
 var users = {};
 var botid = null;
 var started = false;
@@ -754,7 +751,7 @@ var startSong = function(noPrevPlay) {
         /*
 begin sc check
         */
-        request('https://api-widget.soundcloud.com/resolve?url=https%3A//api.soundcloud.com/tracks/' + data[nextSongkey].cid + '&format=json&client_id=LBCcHmRB8XSStWL6wKH2HPACspQlXg2P', function cbfunc(error, response, body) {
+        request('https://api-v2.soundcloud.com/resolve?url=https%3A//api.soundcloud.com/tracks/' + data[nextSongkey].cid + '&format=json&client_id=' + process.env.SOUNDCLOUD_KEY, function cbfunc(error, response, body) {
           //If call returned correctly, continue
           if (!error && response.statusCode == 200) {
             var tracks = [JSON.parse(body)];
