@@ -26,6 +26,7 @@ var colors = {
 var robotsDancing = false;
 var cardGiftedThisSong = false;
 var table = [];
+var lastBlipped = {};
 var playlimit = 2;
 var thingcopy;
 var tagFixData = null;
@@ -1193,6 +1194,17 @@ ref2.on('value', function(dataSnapshot) {
   }
 });
 
+//this is a blip detector
+ref2.orderByChild('status').equalTo(true).on('child_added', function(dataSnapshot) {
+  lastBlipped[dataSnapshot.key] = Date.now();
+});
+ref2.orderByChild('status').equalTo(true).on('child_removed', function(dataSnapshot) {
+  lastBlipped[dataSnapshot.key] = Date.now();
+});
+ref2.orderByChild('status').equalTo(true).on('child_changed', function(dataSnapshot) {
+  lastBlipped[dataSnapshot.key] = Date.now();
+});
+
 var refCardSpecial = firebase.database().ref("cardSpecial");
 refCardSpecial.on('value', function(dataSnapshot) {
   var resultActual = dataSnapshot.val();
@@ -1529,11 +1541,23 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
               var newartist = song_data[0].replace(/&amp;/g, '&');
               var newtitle = song_data[1].replace(/&amp;/g, '&');
               gts.fixTags(newartist, newtitle);
-              talk("ok. updating tags to artist: `"+newartist+"` and title: `"+newtitle+"`. thank you.")
+              talk("ok. updating tags to artist: `" + newartist + "` and title: `" + newtitle + "`. thank you.")
             }
 
           } else {
             talk("update current tags with `!fixtags artist - title` and refer to Rohn Standard Notation if unsure. thanks!");
+          }
+        } else if (command == "lastblipped"){
+          if (args){
+            var prsn = uidLookup(args);
+            if (prsn){
+              let result = null;
+              if (lastBlipped[prsn]){
+                talk("this person last blipped "+ (Date.now() - lastBlipped[prsn]) / 1000 / 60 +" minutes ago. or i just rebooted.");
+              } else {
+                talk("i am confused thank you");
+              }
+            }
           }
         } else if (command == "remove") {
           if (users[chatData.id].mod || users[chatData.id].supermod) {
@@ -2092,9 +2116,20 @@ setInterval(function() {
   // one warning if not here the first check, removed after second check.
   for (var i = 0; i < table.length; i++) {
     if (!users[table[i].id].status) {
-      if (!removalPending[table[i].id]) {
+      let saveTheDJ = false;
+      if (lastBlipped[table[i].id]){
+        let lastAlive = lastBlipped[table[i].id];
+        let timeSinceAlive = Date.now() - lastAlive;
+        if ((timeSinceAlive / 1000) <= 1800) {
+          saveTheDJ = true;
+        }
+      }
+      if (saveTheDJ) {
+        console.log(table[i].id + "saved");
+      } else if (!removalPending[table[i].id]) {
         removalPending[table[i].id] = true;
         console.log(table[i].id + " removal pending.");
+        talk("@" + users[table[i].id].username + " are you there?");
       } else {
         removalPending[table[i].id] = null;
         console.log(table[i].id + " removed");
@@ -2104,10 +2139,20 @@ setInterval(function() {
   }
   for (var i = 0; i < queue.length; i++) {
     if (!users[queue[i].id].status) {
-      if (!removalPending[queue[i].id]) {
+      let saveTheDJ = false;
+      if (lastBlipped[queue[i].id]) {
+        let lastAlive = lastBlipped[queue[i].id];
+        let timeSinceAlive = Date.now() - lastAlive;
+        if ((timeSinceAlive / 1000) <= 1800) {
+          saveTheDJ = true;
+        }
+      }
+      if (saveTheDJ) {
+        console.log(queue[i].id + "saved");
+      } else if (!removalPending[queue[i].id]) {
         removalPending[queue[i].id] = true;
         console.log(queue[i].id + " removal pending.");
-
+        talk("@" + users[queue[i].id].username + " are you there?");
       } else {
         removalPending[queue[i].id] = null;
         console.log(queue[i].id + " removed");
