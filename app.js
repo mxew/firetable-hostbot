@@ -371,6 +371,9 @@ var startSong = function(noPrevPlay) {
       });
       var isNew = newMusicCheck(newEntry);
       if (isNew) {
+
+        if (Math.floor(Math.random() * 15) == 5) printCard()
+
         // NEW MUSIC
         var newMusic = firebase.database().ref("newMusic");
         newMusic.push(newEntry);
@@ -718,7 +721,6 @@ var startSong = function(noPrevPlay) {
               song = songInfo;
               s2p.set(songInfo);
               if (lastfm.key) lastfm.nowPlaying();
-
               var removeThis = queueRef.child(song.key);
               removeThis.remove()
                 .then(function() {
