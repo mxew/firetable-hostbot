@@ -2,7 +2,7 @@
   "rules": {
     ".write": false,
     ".read": false,
-    "chatFeed": {
+      "chatFeed": {
       ".read": true,
       "$comment": {
         ".read": true,
@@ -66,7 +66,12 @@
       ".read": true,
       ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true",
       "$trackid":{
-         ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true || root.child('users/' + auth.uid + '/mod').val() == true || root.child('users/' + auth.uid + '/supermod').val() == true"
+        "artist":{
+          ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true || root.child('users/' + auth.uid + '/mod').val() == true || root.child('users/' + auth.uid + '/supermod').val() == true"
+        },
+        "title":{
+          ".write": "root.child('users/' + auth.uid + '/hostbot').val() == true || root.child('users/' + auth.uid + '/mod').val() == true || root.child('users/' + auth.uid + '/supermod').val() == true"
+        }
       }
     },
     "globalTrackRaws": {
@@ -200,5 +205,3 @@
         }
       }
     }
-  }
-}
