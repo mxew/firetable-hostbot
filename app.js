@@ -372,7 +372,7 @@ var startSong = function(noPrevPlay) {
       var isNew = newMusicCheck(newEntry);
       if (isNew) {
 
-        if (Math.floor(Math.random() * 15) == 5) printCard()
+        if (Math.floor(Math.random() * 15) == 5) printCard(newEntry);
 
         // NEW MUSIC
         var newMusic = firebase.database().ref("newMusic");
@@ -986,9 +986,23 @@ end sc check
   });
 };
 
-var printCard = function(userid) {
-  if (cardGen) return;
-  cardGen = userid;
+var printCard = function(newEntry) {
+  if (!newEntry){
+    newEntry = {
+        artist: song.artist,
+        title: song.title,
+        dj: theDJ.name,
+        djid: theDJ.id,
+        type: song.type,
+        duration: song.duration,
+        url: song.url,
+        cid: song.cid,
+        colors: colors,
+        when: song.started,
+        postedDate: song.postedDate,
+        img: song.image
+      };
+  }
   var now = Date.now();
   var cardCount = firebase.database().ref("cardCount");
   cardCount.once("value").then(function(snapshot) {
@@ -1016,17 +1030,18 @@ var printCard = function(userid) {
       max = 420;
     }
     var thetemp = Math.floor(Math.random() * (max - min)) + min;
+
     var cardData = {
-      djname: theDJ.name,
-      djid: theDJ.id,
-      cid: song.cid,
+      djname: newEntry.dj,
+      djid: newEntry.djid,
+      cid: newEntry.cid,
       num: thenum,
       temp: thetemp,
-      colors: colors,
+      colors: newEntry.colors,
       cardnum: totalCards,
-      title: song.title,
-      artist: song.artist,
-      image: song.image,
+      title: newEntry.title,
+      artist: newEntry.artist,
+      image: newEntry.img,
       set: avatarset,
       date: now,
       special: cardSpecial,
