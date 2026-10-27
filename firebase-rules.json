@@ -34,7 +34,7 @@
     },
     "nameClaim": {
       "$uname": {
-        ".write": "(auth.uid != null && (newData.val() == auth.uid) || root.child('users/' + auth.uid + '/hostbot').val() == true && root.child('banned/' + auth.uid).val() != true)",
+        ".write": "auth.uid != null && root.child('banned/' + auth.uid).val() != true && (newData.val() == auth.uid || root.child('users/' + auth.uid + '/hostbot').val() == true)",
         ".validate": "(!data.exists() || root.child('users/' + data.val() + '/username').val() !== $uname) && $uname.matches(/^[0-9a-zA-Z_]{1,22}$/)"
       }
     },

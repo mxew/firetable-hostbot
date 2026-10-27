@@ -46,6 +46,17 @@ var configs = {
 };
 firebase.initializeApp(configs);
 
+// The database's clock, as the site uses it (ftapi.now()). Song start times
+// are stamped with it so every listener's position matches, whatever this
+// server's own clock says.
+var serverTimeOffset = 0;
+firebase.database().ref(".info/serverTimeOffset").on("value", function(snapshot) {
+  serverTimeOffset = snapshot.val() || 0;
+});
+function serverNow() {
+  return Date.now() + serverTimeOffset;
+}
+
 // Robohash set stamped on new trading cards. AVATARSET forces one set all
 // year; otherwise cards match the site's seasonal theme (monsters in October).
 function cardAvatarSet() {
@@ -126,7 +137,7 @@ firebase.auth().onAuthStateChanged(function(user) {
             var twopeek = firebase.database().ref("songToPlay");
             twopeek.once("value").then(function(snapshot) {
               var data = snapshot.val();
-              var nownow = Date.now();
+              var nownow = serverNow();
               song = data;
               theDJ = table[playDex];
               console.log(queue);
@@ -438,7 +449,7 @@ var startSong = function(noPrevPlay) {
   if (!table.length) {
     console.log("no length");
     var s2p = firebase.database().ref("songToPlay");
-    var now = Date.now();
+    var now = serverNow();
     var songInfo = {
       type: 1,
       cid: 0,
@@ -680,7 +691,7 @@ var startSong = function(noPrevPlay) {
               }
               var thedate = new Date(result.items[0].snippet.publishedAt);
               var postedDate = thedate.getTime();
-              var now = Date.now();
+              var now = serverNow();
               var songInfo = {
                 type: data[nextSongkey].type,
                 cid: data[nextSongkey].cid,
@@ -767,6 +778,8 @@ var startSong = function(noPrevPlay) {
                     name: sname,
                     type: song.type
                   };
+                  // keep the saved album art the site added with the track
+                  if (data[nextSongkey] && data[nextSongkey].img) songBack.img = data[nextSongkey].img;
                   queueRef.push(songBack);
                   gts.np();
                 })
@@ -828,7 +841,7 @@ begin sc check
                 if (sartist == "Unknown") sartist = tracks[0].user.username;
                 var thedate = new Date(tracks[0].created_at);
                 var postedDate = thedate.getTime();
-                var now = Date.now();
+                var now = serverNow();
                 var songInfo = {
                   type: data[nextSongkey].type,
                   cid: data[nextSongkey].cid,
@@ -916,6 +929,8 @@ begin sc check
                       name: sname,
                       type: song.type
                     };
+                    // keep the saved album art the site added with the track
+                    if (data[nextSongkey] && data[nextSongkey].img) songBack.img = data[nextSongkey].img;
                     queueRef.push(songBack);
                     gts.np();
                   })
@@ -1220,6 +1235,51 @@ var removePerson = function(id) {
   return false;
 };
 
+/**
+ * Turn "step down after the next song" on or off for a DJ on the deck or in
+ * the waitlist, and say so in chat. requester is the name of whoever asked;
+ * self is true when they asked for themselves (same wording as always).
+ */
+var setRemoveAfter = function(id, on, requester, self) {
+  var them = self ? "you" : "@" + ((users[id] && users[id].username) || id);
+  var their = self ? "your" : "their";
+  var check = addCheck(id);
+  if (!check) {
+    talk(self ? requester + ", you aren't even DJing..." : requester + ", " + them + " isn't DJing.");
+    return;
+  }
+  if (check == 1) {
+    //user in waitlist
+    for (var i = 0; i < queue.length; i++) {
+      if (queue[i].id == id) {
+        queue[i].removeAfter = on;
+        updateWaitlist();
+        talk(on ? requester + ", I'll remove " + them + " after " + their + " next song."
+                : requester + ", I will be sure to not remove " + them + " after " + their + " next track.");
+        break;
+      }
+    }
+    return;
+  }
+  //user on deck
+  if (id == theDJ.id) {
+    // user is current dj
+    talk(on ? requester + ", I'll remove " + them + " at the end of this song."
+            : requester + ", I will NOT remove " + them + " after this song.");
+    theDJ.removeAfter = on;
+  } else {
+    talk(on ? requester + ", I'll remove " + them + " after " + their + " next song."
+            : requester + ", I will NOT remove " + them + " after " + their + " next song.");
+  }
+  for (var i = 0; i < table.length; i++) {
+    if (table[i].id == id) {
+      table[i].removeAfter = on;
+      updateTable();
+      break;
+    }
+  }
+};
+
 var addCheck = function(id, hereCheck) {
   if (!users[id].status && hereCheck) return 3;
   for (var i = 0; i < queue.length; i++) {
@@ -1373,70 +1433,21 @@ ref.on('child_added', function(childSnapshot, prevChildKey) {
         } else if (command == "removeme") {
           var removed = removeMe(chatData.id);
           if (!removed) talk(namebo + ", you aren't even DJing...");
-        } else if (command == "removemeafter" || command == "removeafter" || command == "gottacatchmybus") {
-          var check = addCheck(chatData.id);
-          if (!check) {
-            talk(namebo + ", you aren't even DJing...");
-          } else if (check == 1) {
-            //user in waitlist
-            for (var i = 0; i < queue.length; i++) {
-              if (queue[i].id == chatData.id) {
-                queue[i].removeAfter = true;
-                updateWaitlist();
-                talk(namebo + ", I'll remove you after your next song.");
-                break;
-              }
-            }
-          } else if (check == 2) {
-            //user on deck
-            if (chatData.id == theDJ.id) {
-              // user is current dj
-              talk(namebo + ", I'll remove you at the end of this song.");
-              theDJ.removeAfter = true;
-            } else {
-              // user is not current dj
-              talk(namebo + ", I'll remove you after your next song.");
-            }
-            for (var i = 0; i < table.length; i++) {
-              if (table[i].id == chatData.id) {
-                table[i].removeAfter = true
-                updateTable();
-                break;
-              }
+        } else if (command == "removemeafter" || command == "removeafter" || command == "gottacatchmybus" ||
+                   command == "dontremovemeafter" || command == "dontremoveafter" || command == "dontremoveme" || command == "dontremove") {
+          // "!removeafter" / "!dontremoveme" act on yourself. Mods can name
+          // someone else: "!removeafter name" / "!dontremove name".
+          var stepDown = command.indexOf("dont") !== 0;
+          var targetId = chatData.id;
+          var target = args.trim();
+          if (target && (users[chatData.id].mod || users[chatData.id].supermod)) {
+            targetId = uidLookup(target);
+            if (!targetId) {
+              talk("who is that");
+              return;
             }
           }
-        } else if (command == "dontremovemeafter" || command == "dontremoveafter" || command == "dontremoveme" || command == "dontremove") {
-          var check = addCheck(chatData.id);
-          if (!check) {
-            talk(namebo + ", you aren't even DJing...");
-          } else if (check == 1) {
-            //user in waitlist
-            for (var i = 0; i < queue.length; i++) {
-              if (queue[i].id == chatData.id) {
-                queue[i].removeAfter = false;
-                updateWaitlist();
-                talk(namebo + ", I will be sure to not remove you after your next track.");
-                break;
-              }
-            }
-          } else if (check == 2) {
-            //user on deck
-            if (chatData.id == theDJ.id) {
-              // user is current dj
-              talk(namebo + ", I will NOT remove you after this song.");
-              theDJ.removeAfter = false;
-            } else {
-              // user is not current dj
-              talk(namebo + ", I will NOT remove you after your next song.");
-            }
-            for (var i = 0; i < table.length; i++) {
-              if (table[i].id == chatData.id) {
-                table[i].removeAfter = false;
-                updateTable();
-                break;
-              }
-            }
-          }
+          setRemoveAfter(targetId, stepDown, namebo, targetId == chatData.id);
         } else if (command == "skip") {
           if (users[chatData.id].mod || users[chatData.id].supermod || (chatData.id == theDJ.id)) {
             nextSong();

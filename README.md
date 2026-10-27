@@ -16,3 +16,14 @@ pairs with a client side front end ([firetable-user](https://github.com/mxew/fir
 - youtube-node ^1.3.3
 - node-soundcloud 0.0.6
 - node-vibrant ^3.0.0
+
+## mod commands for other DJs
+- `!remove name` / `!add name` take someone off or put them on the deck
+- `!removeafter name` has them step down after their next song; `!dontremove name` cancels it
+  (without a name, both work on yourself, as before)
+
+## timing
+Song start times (`songToPlay/started`) use the database's clock (`.info/serverTimeOffset`), the same clock firetable-user uses, so every listener's position and timers line up even when this server's clock drifts.
+
+## database rules
+`firebase-rules.json` is applied separately (Firebase console → Realtime Database → Rules); updating the bot doesn't change them.
